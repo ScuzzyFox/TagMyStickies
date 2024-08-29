@@ -1,4 +1,4 @@
-# Telegram Bot Sticker Tagging Project
+# Telegram TagMyStickiesBot
 
 ## Setup
 
