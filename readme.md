@@ -27,9 +27,9 @@ This app is a Telegram bot that allows a user to tag certain stickers privately,
 - A sticker can have multiple tags.
 - Users can have their own tags for their stickers, which are different from other users' tags.
 - For example:
-  - User 1 tags Sticker A with "feet" and Sticker B with "feet".
-  - User 2 tags Sticker A with "tail" and Sticker B with "paws".
-  - User 1 should be able to look up all of their "feet" stickers.
+  - User 1 tags Sticker A with "hug" and Sticker B with "hug".
+  - User 2 tags Sticker A with "happy" and Sticker B with "sad".
+  - User 1 should be able to look up all of their "hug" stickers, etc.
 
 ## Database Structure
 
