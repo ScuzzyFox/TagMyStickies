@@ -2,9 +2,18 @@
 
 ## Setup
 
-You need Node.js to work on this project. Get it!
+- You need Node.js to work on this project. Get it! https://nodejs.org/en/download/
 
-Run `npm install` at the root directory to have everything you need.
+- Once installed, Run `npm install` in terminal at the root directory of this project to install the node packages required.
+
+- Create a file called `.env` in the root directory. It needs to have `ENVIRONMENT_CONTEXT = development` and
+  `TELEGRAM_BOT_TOKEN = <Token>`. You should make your own bot for dev purposes using @botfather on telegram! He'll give you a token you can paste into `.env`
+
+- Check out https://github.com/yagop/node-telegram-bot-api, https://core.telegram.org/bots/api for info on the telegram bot api
+
+- Make sure you have git and know how to use it. You'll make your own feature branches and create pull requests to update the main code. You should always pull from the `development` branch and make pull requests to `development`. When you start a new feature, follow the feature branch convention detailed at the bottom of this doc.
+
+- Advanced: learn to use jest and test your code with unit tests.
 
 ## Project Overview
 

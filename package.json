@@ -6,8 +6,8 @@
   "scripts": {
     "test": "jest",
     "build": "tsc && tsc-alias",
-    "dev": "ts-node -r tsconfig-paths/register src/app.ts",
-    "start": "node build/app.js"
+    "dev": "npm run build && ts-node -r tsconfig-paths/register src/app.ts",
+    "start": "npm run build && node build/app.js"
   },
   "keywords": [
     "telegram",
@@ -17,6 +17,7 @@
   "author": "scuzzyfox",
   "license": "MIT",
   "dependencies": {
+    "dotenv": "^16.4.5",
     "node-telegram-bot-api": "^0.66.0",
     "sqlite3": "^5.1.7"
   },
