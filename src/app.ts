@@ -28,9 +28,9 @@ import { my_function } from "libs/mylib";
 //todo: setup bot "/help" command.
 
 //todo: setup bot "/*", "unrecognized command response."
-//!if the user wants to stop using the bot with /stop, inline queries should not work when stop is called. /start needs to be called again to restart.
 
 //todo setup bot "/stop" command.
+//!if the user wants to stop using the bot with /stop, inline queries should not work when stop is called. /start needs to be called again to restart.
 
 //todo setup bot "/delete_data" command. this should wipe the users data and needs to be confirmed.
 
@@ -40,5 +40,7 @@ import { my_function } from "libs/mylib";
 //! should there also be a way to send some tags and some stickers to group tag them?
 //! e.g. "send me a list of tags", "now send me a bunch of stickers that you want to have these tags. hit /done when you're done."
 //! I think the anwer is yes -scuzzy
+
+//todo: setup bot /multitag, /modifymultitag and /done command. described above.
 
 my_function();
