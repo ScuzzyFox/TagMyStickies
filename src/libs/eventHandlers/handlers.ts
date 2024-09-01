@@ -48,10 +48,6 @@ export function startEventHandlers(bot) {
         var randomID = startEventHandlerscv1.responses.avalResp[randomaval];
         startEventHandlerscv1.responses.avalResp.splice(randomaval, 1);
         console.log(randomID, startEventHandlerscv1.responses.avalResp)
-        /*while(startEventHandlerscv1.lastStartResp==randomID) {
-          var randomID = Math.round(Math.random()*(startResponses.length-1));
-        }
-        startEventHandlerscv1.lastStartResp = randomID;*/
         
         // sends the responses!
         startResponses[randomID].forEach((a, b) => {
