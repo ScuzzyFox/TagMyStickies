@@ -46,18 +46,16 @@ This app is a Telegram bot that allows a user to tag certain stickers privately,
 
 #### Users Table
 
-- **user_id** (Primary Key) (integer): A unique identifier for each user.
-- **telegram_user_id** (string): The Telegram user ID.
+- **chat_id** (integer): telegram chat ID
+- **telegram_user_id** (primary key)(string): The Telegram user ID.
 
 #### Stickers Table
 
-- **sticker_id** (Primary Key) (integer): A unique identifier for each sticker entry.
-- **sticker_file_id** (string): The file ID of the sticker as provided by Telegram.
+- **sticker_file_id** (primary key)(string): The file ID of the sticker as provided by Telegram.
 
 #### Tags Table
 
-- **tag_id** (Primary Key) (integer): A unique identifier for each tag.
-- **tag_name** (string): The name of the tag, stored in lowercase for case insensitivity.
+- **tag_name** (Primary Key)(string): The name of the tag, stored in lowercase for case insensitivity.
 
 #### User_Sticker_Tags Table
 

@@ -1,32 +1,31 @@
 /**
  * This is the entry point to the app.
  */
-import { my_function } from "libs/mylib";
-import { startEventHandlers } from "libs/eventHandlers/handlers"
 
-//TODO: Set up the database (sqlite), including its tables?
-//TODO: Or maybe we make this more complicated + robust and use django + DRF to handle the database nonsense?
-//TODO: it will be way easier to update the database structure with django, but way more complicated to setup.
-
-//todo: setup bot
+/**
+ * Place Imports here
+ */
+import { startEventHandlers } from "libs/eventHandlers/handlers";
 import TelegramBot from "node-telegram-bot-api";
-require("dotenv").config();
+import "dotenv/config";
+//end import
 
-// replace the value below with the Telegram token you receive from @BotFather
+/**
+ * Place Constants here
+ */
 const token = process.env.TELEGRAM_BOT_TOKEN;
-
-// Create a bot that uses 'polling' to fetch new updates
-const bot = new TelegramBot(token, {polling: true});
+const bot = new TelegramBot(token, { polling: true });
+//end constants
 
 //todo: setup bot "/start" event handler. It should add the user to the users database and then tell the
-//todo: user to send a sticker to tag
-startEventHandlers(bot)
+//todo: user the instructions
+startEventHandlers(bot);
 
 //todo: since the bot will need a sticker and then a bunch of tags, the bot needs to know some sort of "status"
 //todo: or what "step" in the process it's on. no "/command" needed, just send a sticker rawdog
 //todo: e.g. user sends sticker, then bot shows list of tags (if any) along with an "add" button. upon choosing add,
 //todo: the user can send all the tags they want in a single message, which causes the bot to store the tag-user-sticker info
-//! Scuzzy needs to make a flow doc of the different paths?
+//! Scuzzy needs to make a flow doc of the different paths? (USER STORY)
 //! need to make sure the logic works if user A forwards a sticker from user B. we want the tags to be applied to user A's records.
 
 //todo: inline command handling. invoiking the bot via @bot_username tag1 tag2 etc. should result in a list of stickers the user can scroll through.
@@ -52,5 +51,3 @@ startEventHandlers(bot)
 //! I think the anwer is yes -scuzzy
 
 //todo: setup bot /multitag, /modifymultitag and /done command. described above.
-
-my_function();
