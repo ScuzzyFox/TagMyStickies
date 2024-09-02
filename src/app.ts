@@ -2,6 +2,7 @@
  * This is the entry point to the app.
  */
 import { my_function } from "libs/mylib";
+import { startEventHandlers } from "libs/eventHandlers/handlers"
 
 //TODO: Set up the database (sqlite), including its tables?
 //TODO: Or maybe we make this more complicated + robust and use django + DRF to handle the database nonsense?
@@ -13,13 +14,13 @@ require("dotenv").config();
 
 // replace the value below with the Telegram token you receive from @BotFather
 const token = process.env.TELEGRAM_BOT_TOKEN;
-console.log(token);
 
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(token, {polling: true});
 
 //todo: setup bot "/start" event handler. It should add the user to the users database and then tell the
 //todo: user to send a sticker to tag
+startEventHandlers(bot)
 
 //todo: since the bot will need a sticker and then a bunch of tags, the bot needs to know some sort of "status"
 //todo: or what "step" in the process it's on. no "/command" needed, just send a sticker rawdog
