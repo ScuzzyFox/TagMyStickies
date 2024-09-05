@@ -27,5 +27,6 @@
   "javascript.inlayHints.variableTypes.enabled": false,
   "javascript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
   "editor.formatOnSave": true,
-  "editor.formatOnSaveMode": "file"
+  "editor.formatOnSaveMode": "file",
+  "python.defaultInterpreterPath": "./Django/env/bin/python"
 }
