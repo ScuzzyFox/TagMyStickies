@@ -13,5 +13,15 @@ urlpatterns = [
     path('records/filter-stickers/',
          views.FilterStickersView.as_view(), name="filter-stickers"),
     path('records/user-sticker-tag-list/<int:user>/',
-         views.UserStickerTagList.as_view(), name="user-sticker-tag-list")
+         views.UserStickerTagList.as_view(), name="user-sticker-tag-list"),
+    path('records/stickers/<int:user>/<str:sticker>/',
+         views.ManipulateMultiStickerView.as_view(), name="manipulate-multi-sticker"),
+    path('records/stickers/<int:user>/',
+         views.MultiStickerView.as_view(), name="sticker-multi"),
+    path('records/stickers/tags/<int:user>/<str:sticker>/',
+         views.DeleteTagSetView.as_view(), name="delete-tag-set"),
+    path('records/stickers/tags/multi/<int:user>/',
+         views.DeleteMultiTagSetView.as_view(), name="delete-multi-tag-set"),
+    path('records/stickers/tags/mass-replace/<int:user>/',
+         views.MassTagReplaceView.as_view(), name="mass-tag-replace")
 ]
