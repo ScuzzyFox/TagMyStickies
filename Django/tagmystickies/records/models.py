@@ -1,16 +1,26 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 
+'''
+Models are Django's way of representing database objects.
+The definitions here affect what's actually in the database and what rules the objects have to follow.
+A lot of the time, modifications here require a python manage.py makemigrations records and python manage.py migrate records
+'''
+
 
 class UserEntry(models.Model):
+    '''
+    User Entry model represents a user in the system. It has an integer user ID, an integer chat ID, and a multi-purpose status string
+    '''
+    # these are the fields for the model
     user = models.IntegerField(primary_key=True)
     chat = models.IntegerField(unique=True, blank=False, null=False)
     status = models.TextField(blank=True)
 
-    # Make lowercase before saving
+    # strip the status of whitespace before saving
     def save(self, *args, **kwargs):
         if self.status:
-            self.status = self.status.lower().strip()
+            self.status = self.status.strip()
         super().save(*args, **kwargs)
 
     class Meta:
@@ -18,6 +28,9 @@ class UserEntry(models.Model):
 
 
 class StickerTagEntry(models.Model):
+    '''
+    Sticker Tag Entry model represents 1 tag per user per sticker. tags are lower case and can't have certain special characters.
+    '''
     sticker = models.CharField(max_length=128)
     user = models.ForeignKey(
         UserEntry, on_delete=models.CASCADE, related_name='stickers')
@@ -25,7 +38,7 @@ class StickerTagEntry(models.Model):
     special_chars = [' ', '\n', '\r', ',', '"']
 
     class Meta:
-        ordering = ['sticker', 'user', 'tag']
+        ordering = ['tag', 'user', 'sticker']
 
     def clean(self):
         # Special characters to check

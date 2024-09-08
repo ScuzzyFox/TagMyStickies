@@ -11,18 +11,23 @@ from rest_framework.test import APITestCase
 from records.serializers import UserEntrySerializer, StickerTagEntrySerializer
 from records.models import UserEntry, StickerTagEntry
 
+'''
+Rather than starting a server and dirtying up a database, these tests allow us to automatically confirm that all our views and models are
+working correctly!
+'''
+
 
 class UserEntryModelTest(TestCase):
 
     def test_userentry_save(self):
         before_count = UserEntry.objects.count()
-        # Create a user entry with a status that has uppercase letters
+        # Create a user entry with a status
         user = UserEntry.objects.create(user=1, chat=12345, status="ACTIVE")
         after_count = UserEntry.objects.count()
         # make sure the number of entries increased
         self.assertEqual(after_count-before_count, 1)
-        # Check if the status is saved in lowercase
-        self.assertEqual(user.status, "active")
+        # Check if the status is saved
+        self.assertEqual(user.status, "ACTIVE")
 
     def test_duplicate_user_entry_save(self):
         # make sure there's an error when we try to add two identical users
@@ -197,8 +202,8 @@ class UserEntryListTest(APITestCase):
             '/records/user-entries/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(UserEntry.objects.count(), 2)
-        # Check that the status is saved without leading/trailing whitespace and in lowercase
-        self.assertEqual(UserEntry.objects.get(user=2).status, "inactive")
+        # Check that the status is saved without leading/trailing whitespace
+        self.assertEqual(UserEntry.objects.get(user=2).status, "Inactive")
 
 
 class StickerTagEntryListTest(APITestCase):
@@ -280,60 +285,54 @@ class FilterStickersViewTest(APITestCase):
             user=self.user, sticker="sticker5", tag="serious")
 
     def test_filter_stickers_single_tag(self):
-        # Test filtering with a single tag (funny)
         response = self.client.post(
             '/records/filter-stickers/', {'user': 1, 'tags': [' FUNNY ']})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Three stickers should be returned
-        self.assertEqual(len(response.data), 3)
-        self.assertEqual(set([sticker['sticker'] for sticker in response.data]), {
+        # Expect three stickers to be returned
+        self.assertEqual(len(response.data['stickers']), 3)
+        self.assertEqual(set(response.data['stickers']), {
                          'sticker1', 'sticker3', 'sticker4'})
 
     def test_filter_stickers_multiple_tags(self):
-        # Test filtering with multiple tags (funny and serious)
         response = self.client.post(
             '/records/filter-stickers/', {'user': 1, 'tags': ['FUNNY ', ' serious']})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # All five stickers should be returned
-        self.assertEqual(len(response.data), 5)
-        self.assertEqual(set([sticker['sticker'] for sticker in response.data]), {
+        # Expect all five stickers to be returned
+        self.assertEqual(len(response.data['stickers']), 5)
+        self.assertEqual(set(response.data['stickers']), {
                          'sticker1', 'sticker2', 'sticker3', 'sticker4', 'sticker5'})
 
     def test_filter_stickers_empty_tag_list(self):
-        # Test filtering with an empty tag list (should return all stickers)
         response = self.client.post(
             '/records/filter-stickers/', {'user': 1, 'tags': []})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # All five stickers should be returned
-        self.assertEqual(len(response.data), 5)
-        self.assertEqual(set([sticker['sticker'] for sticker in response.data]), {
+        # Expect all five stickers to be returned
+        self.assertEqual(len(response.data['stickers']), 5)
+        self.assertEqual(set(response.data['stickers']), {
                          'sticker1', 'sticker2', 'sticker3', 'sticker4', 'sticker5'})
 
     def test_filter_stickers_no_tag_list(self):
-        # Test filtering with no tag list (should return all stickers)
         response = self.client.post('/records/filter-stickers/', {'user': 1})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # All five stickers should be returned
-        self.assertEqual(len(response.data), 5)
-        self.assertEqual(set([sticker['sticker'] for sticker in response.data]), {
+        # Expect all five stickers to be returned
+        self.assertEqual(len(response.data['stickers']), 5)
+        self.assertEqual(set(response.data['stickers']), {
                          'sticker1', 'sticker2', 'sticker3', 'sticker4', 'sticker5'})
 
     def test_filter_stickers_no_results(self):
-        # Test filtering with a tag that doesn't exist
         response = self.client.post(
             '/records/filter-stickers/', {'user': 1, 'tags': ['nonexistent']})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # No stickers should be returned
-        self.assertEqual(len(response.data), 0)
+        # Expect no stickers to be returned
+        self.assertEqual(len(response.data['stickers']), 0)
 
     def test_multiple_stickers_returned_for_shared_tag(self):
-        # Test multiple stickers returned when they share the same tag (funny)
         response = self.client.post(
             '/records/filter-stickers/', {'user': 1, 'tags': ['funny']})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Three stickers should be returned for the 'funny' tag
-        self.assertEqual(len(response.data), 3)
-        self.assertEqual(set([sticker['sticker'] for sticker in response.data]), {
+        # Expect three stickers to be returned for the 'funny' tag
+        self.assertEqual(len(response.data['stickers']), 3)
+        self.assertEqual(set(response.data['stickers']), {
                          'sticker1', 'sticker3', 'sticker4'})
 
 

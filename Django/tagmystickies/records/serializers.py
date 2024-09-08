@@ -2,14 +2,25 @@ from rest_framework import serializers
 from records.models import UserEntry, StickerTagEntry
 from django.core.exceptions import ValidationError
 
+'''
+These serializers are specifically a django rest framework mechanism. They sit in between the database/models and your views.
+(Views are like API endpoints). This way the serializer can do some validation logic and format things correctly before taking it from
+the database and serving it to a client and vise versa.
+You'll notice that some of these serializers look exactly like models.
+There are a lot more serializers here than models because we need different serializers for different purposes.
 
-# This serializer is responsible for serializing the 'tag' field from the StickerTagEntry model.
-# It's a simple serializer since it only deals with a single field, making it reusable if you need to serialize tags elsewhere.
+rest framework is a plugin for django that focuses more on just being a RESTful API than serving webpages.
+'''
+
+
 class TagSerializer(serializers.ModelSerializer):
+    '''
+    this serializer is responsible for serializing the 'tag' field from the StickerTagEntry model.
+    '''
 
     def validate_tag(self, value):
         """
-        Custom validation for the 'tag' field to check for special characters. This is probably not needed in this serializer
+        Custom validation for the 'tag' field to check for special characters. This is probably not needed in this serializer?
         """
         value = value.strip().lower()  # Normalize the tag by stripping whitespace and lowercasing
         for char in self.special_chars:
@@ -19,14 +30,18 @@ class TagSerializer(serializers.ModelSerializer):
         return value
 
     class Meta:
+        # this is the model that the serializer deals with
         model = StickerTagEntry
         # Specifies that only the 'tag' field will be included in the serialized output.
         fields = ['tag']
 
 
-# This serializer handles the serialization of stickers, including their associated tags.
-# It uses a custom method field to gather all tags associated with a given sticker and user.
 class StickerSerializer(serializers.ModelSerializer):
+    '''
+    This serializer handles the serialization of stickers, including their associated tags.
+    It uses a custom method field to gather all tags associated with a given sticker and user.
+    This is meant for read-only operations (display only)
+    '''
     # This field will be populated by a method rather than directly from the model.
     tags = serializers.SerializerMethodField()
 
@@ -43,9 +58,12 @@ class StickerSerializer(serializers.ModelSerializer):
         return tags
 
 
-# This serializer is responsible for serializing a user and all their associated stickers.
-# It nests the StickerSerializer to include the sticker data and associated tags within the user serialization.
 class UserStickerTagSerializer(serializers.ModelSerializer):
+    '''
+    This serializer is responsible for serializing a user and all their associated stickers.
+    It nests the StickerSerializer to include the sticker data and associated tags within the user serialization.
+    This is intended to be used as read-only
+    '''
     # This field links to the 'stickers' related_name from the UserEntry model,
     # allowing us to access all stickers associated with this user.
     # 'many=True' indicates that this is a one-to-many relationship, so we expect multiple stickers.
@@ -57,16 +75,29 @@ class UserStickerTagSerializer(serializers.ModelSerializer):
         fields = ['user', 'chat', 'status', 'stickers']
 
 
-# this serializer is for serializing just user entries
 class UserEntrySerializer(serializers.ModelSerializer):
+    '''
+    this serializer is for serializing just user entry objects
+    It's for read and write.
+    It's a modelSerializer so it actually gets a lot of the logic from how the model object is set up (UserEntry).
+    '''
+
+    # explicitly defining this field here to say that it's not required and can be blank or missing
     status = serializers.CharField(
         required=False, allow_blank=True, allow_null=True)
 
     def validate_status(self, value):
-        value = value.strip().lower()
+        '''
+        Because this function is named validate_something, it is automatically called when the serializer validates its data against the model's rules. Here, we're just making sure to strip the status of its leading and trailing whitespace before saving it to the database.
+        This function is specifically validating the status field.
+        '''
+        value = value.strip()
         return value
 
     def validate(self, data):
+        '''
+        Validates that if we're saving a new user, we cannot have duplicate chat id's because that wouldn't make sense.
+        '''
         chat = data.get('chat')
 
         queryset = UserEntry.objects.filter(chat=chat)
@@ -85,7 +116,12 @@ class UserEntrySerializer(serializers.ModelSerializer):
 
 # this serializer is for serializing just sticker tag entries
 class StickerTagEntrySerializer(serializers.ModelSerializer):
-    special_chars = [' ', '\n', '\r', ',', '"']
+    '''
+    This serializer is for read/write serialization of sticker tag entries.
+    '''
+
+    # pulling the special characters list from the model
+    special_chars = StickerTagEntry.special_chars
 
     def validate_tag(self, value):
         """
@@ -106,7 +142,7 @@ class StickerTagEntrySerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """
-        Cross-field validation for duplicates.
+        Cross-field validation for duplicates only if we're saving a new object (not updating an existing one).
         """
         user = data.get('user')
         sticker = data.get('sticker')
@@ -131,8 +167,11 @@ class StickerTagEntrySerializer(serializers.ModelSerializer):
         fields = ['id', 'sticker', 'user', 'tag']
 
 
-# just for getting a list of stickers belonging to a user with an optional list of tags
 class StickerFilterSerializer(serializers.Serializer):
+    '''
+    This serializer is useful for the requests that the inline mode of the bot will do.
+    i.e. show a user's stickers that fit a set of tags.
+    '''
     user = serializers.IntegerField()
     tags = serializers.ListField(child=serializers.CharField(
         max_length=128), required=False, allow_empty=True, allow_null=True)

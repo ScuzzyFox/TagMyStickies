@@ -6,13 +6,31 @@ from .serializers import StickerSerializer, StickerTagEntrySerializer, TagSerial
 from .models import StickerTagEntry, UserEntry
 from rest_framework import generics, mixins, status, request
 
+'''
+These views are the pieces of code that run when a user makes a request against a url.
+Some of theme do a lot of work for you, like the ones that use generics from rest_Framework.
 
-# lists all user entries or creates a new one
+Others are more manual, like the ones using APIView.
+'''
+
+
 class UserEntryList(generics.ListCreateAPIView):
+    '''
+    lists all user entries or creates a new one.
+    the get_queryset function filters the list results against query parameters
+    https://scuzzyfox/stuff?this=that
+    ^^^ this=that is a query parameter
+    In this class, the query parameters can be used like this:
+    ?user=98376845&chat=364835883
+    '''
 
+    # this is defined in a specific way so that the generic view can use it
     serializer_class = UserEntrySerializer
 
     def get_queryset(self):
+        '''
+        Filters the result list using optionally supplied query parameters in the url
+        '''
         user = self.request.query_params.get('user', None)
         chat = self.request.query_params.get('chat', None)
         status = self.request.query_params.get('status', None)
@@ -27,17 +45,25 @@ class UserEntryList(generics.ListCreateAPIView):
         return queryset
 
 
-# manipulates or displays a single user entry
 class UserEntryDetail(generics.RetrieveUpdateDestroyAPIView):
+    '''
+    Deletes, updates, patches, or displays a single, specific user entry
+    '''
     queryset = UserEntry.objects.all()
     serializer_class = UserEntrySerializer
 
 
-# lists all the sticker tag entries or creates a new one
 class StickerTagEntryList(generics.ListCreateAPIView):
+    '''
+    lists all the sticker tag entries or creates a new one.
+    Same queryset logic as above with query parameters
+    '''
     serializer_class = StickerTagEntrySerializer
 
     def get_queryset(self):
+        '''
+        Filters the result list using optionally supplied query parameters in the url
+        '''
         sticker = self.request.query_params.get('sticker', None)
         tag = self.request.query_params.get('tag', None)
         user = self.request.query_params.get('user', None)
@@ -58,6 +84,10 @@ class StickerTagEntryList(generics.ListCreateAPIView):
         return queryset
 
     def create(self, request, *args, **kwargs):
+        '''
+        overloading the create function to do some extra validation.
+        In reality this is probably redundant and is a remnant of some earlier testing.
+        '''
         # Use try/except to catch ValidationError and return proper response
         serializer = self.get_serializer(data=request.data)
         try:
@@ -68,46 +98,60 @@ class StickerTagEntryList(generics.ListCreateAPIView):
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# manipulates a specific Sticker tag entry
 class StickerTagEntryDetail(generics.RetrieveUpdateDestroyAPIView):
+    '''
+    Displays, updates, patches, and deletes a specific Sticker tag entry. Just one at a time.
+    '''
     queryset = StickerTagEntry.objects.all()
     serializer_class = StickerTagEntrySerializer
 
 
-# returns a list of stickers belonging to a user + filtered on the tags supplied
 class FilterStickersView(APIView):
+    '''
+    Returns a list of unique stickers belonging to a user, filtered by tags.
+    This view is best for the inline part of the telegram bot.
+    Note that POST is used instead of GET.
+    '''
+
     def post(self, request):
-        # First, validate the input using StickerFilterSerializer
+        # Validate the input using StickerFilterSerializer
         serializer = StickerFilterSerializer(data=request.data)
 
         if serializer.is_valid():
             user = serializer.validated_data['user']
             tags = serializer.validated_data.get('tags', [])
 
-            # If no tags are provided, return all stickers for the user
+            # If no tags are provided, return all unique stickers for the user
             if tags:
                 stickers = StickerTagEntry.objects.filter(
-                    user=user, tag__in=tags).distinct()
+                    user=user, tag__in=tags).values_list('sticker', flat=True).distinct()
             else:
-                stickers = StickerTagEntry.objects.filter(user=user).distinct()
+                stickers = StickerTagEntry.objects.filter(
+                    user=user).values_list('sticker', flat=True).distinct()
 
-            # Serialize the filtered stickers
-            result_serializer = StickerTagEntrySerializer(stickers, many=True)
-            return Response(result_serializer.data, status=status.HTTP_200_OK)
+            # Return the stickers as a list under the 'stickers' key
+            return Response({"stickers": list(stickers)}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# view a user's complete list of stickers and tags
 class UserStickerTagList(generics.RetrieveAPIView):
+    '''
+    view a user's complete list of stickers and tags
+    '''
     serializer_class = UserStickerTagSerializer
     queryset = UserEntry.objects.all().prefetch_related('stickers__tags')
 
 
 class ManipulateMultiStickerView(APIView):
+    '''
+    Some useful multi entry manipulation utility views
+    '''
 
-    # add a set of tags to 1 sticker
     def post(self, request, user, sticker):
+        '''
+        Adds a set of tags to 1 user's sticker
+        '''
         usr = get_object_or_404(UserEntry, user=user)
         tags_to_add = request.data.get('tags_to_add', None)
         if (tags_to_add is not None and len(tags_to_add) > 0):
@@ -124,9 +168,10 @@ class ManipulateMultiStickerView(APIView):
             return Response({"error": "Tag list not supplied or is empty"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
 
-    # delete 1 sticker from user
-
     def delete(self, request, user, sticker):
+        '''
+        Deletes a user's sticker from the database
+        '''
         try:
             queryset = StickerTagEntry.objects.filter(
                 user=user, sticker=sticker)
@@ -141,6 +186,9 @@ class ManipulateMultiStickerView(APIView):
     # replace a set of tags with another set
 
     def patch(self, request, user, sticker):
+        '''
+        Replaces a set of tags on a sticker with another set (delete, then add)
+        '''
         tags_to_remove = request.data.get('tags_to_remove', None)
         tags_to_add = request.data.get('tags_to_add', None)
         if (tags_to_remove is not None):
@@ -161,11 +209,15 @@ class ManipulateMultiStickerView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-# do stuff with multiple stickers for a user
 class MultiStickerView(APIView):
+    '''
+    Some more utility functions for manipulating multiple stickers at a time.
+    '''
 
-    # tag multliple stickers with multiple tags all at once
     def post(self, request, user):
+        '''
+        tag multliple stickers with multiple tags all at once
+        '''
         userEntry = get_object_or_404(UserEntry, user=user)
         stickers = request.data.get('stickers', None)
         tags = request.data.get('tags', None)
@@ -186,9 +238,10 @@ class MultiStickerView(APIView):
                     continue
         return Response(status=status.HTTP_201_CREATED)
 
-    # delete a list of stickers!
-
     def delete(self, request, user):
+        '''
+        Delete a list of stickers belonging to a user
+        '''
         # Ensure the 'stickers' list is provided
         stickers = request.data.get('stickers', None)
         if stickers is None:
@@ -208,8 +261,11 @@ class MultiStickerView(APIView):
             return Response({"error": "No matching stickers found."}, status=status.HTTP_404_NOT_FOUND)
 
 
-# view to delete a set of tags from a sticker
 class DeleteTagSetView(APIView):
+    '''
+    view to delete a set of tags from a sticker 
+    '''
+
     def delete(self, request, user, sticker):
         usr = get_object_or_404(UserEntry, user=user)
         sticker = sticker.strip()
@@ -226,8 +282,11 @@ class DeleteTagSetView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# view to delete a set of tags from multiple stickers at once
 class DeleteMultiTagSetView(APIView):
+    '''
+    view to delete a set of tags from multiple stickers at once
+    '''
+
     def delete(self, request, user):
         usr = get_object_or_404(UserEntry, user=user)
         tags_to_remove = request.data.get('tags_to_remove', None)
@@ -245,9 +304,11 @@ class DeleteMultiTagSetView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# a view to mass replace multiple tags from multiple stickers.
-# todo: test view
 class MassTagReplaceView(APIView):
+    '''
+    a view to mass replace multiple tags from multiple stickers.
+    '''
+
     def patch(self, request, user):
         usr = get_object_or_404(UserEntry, user=user)
         tags_to_remove = request.data.get('tags_to_remove', None)

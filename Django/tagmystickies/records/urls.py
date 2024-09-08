@@ -1,6 +1,11 @@
 from django.urls import path
 from records import views
 
+
+'''
+These url definitions are what expose your views to a client.
+'''
+
 urlpatterns = [
     path('records/user-entries/', views.UserEntryList.as_view(),
          name="user-entries-list"),
