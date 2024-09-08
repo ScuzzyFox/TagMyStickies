@@ -4,7 +4,7 @@
 
 - You need Node.js to work on this project. Get it! https://nodejs.org/en/download/
 
-- Once installed, Run `npm install` in terminal at the root directory of this project to install the node packages required.
+- Once installed, Run `npm install` in terminal at the root directory of this project to install the node packages required. You should run this every time you pull/fetch.
 
 - Create a file called `.env` in the root directory. It needs to have `ENVIRONMENT_CONTEXT = development` and
   `TELEGRAM_BOT_TOKEN = <Token>`, `SECRET_KEY=<Token>`. You should make your own bot for dev purposes using @botfather on telegram! He'll give you a token you can paste into `.env`
@@ -21,7 +21,7 @@
 
 - Open a terminal in the /Django directory of the project. Run `python3 -m venv env` and then `source env/bin/activate` to create and activate a virtual python environment in your terminal. If you're on windows you'll need to run `cd env/Scripts && activate && cd ../../` instead. You'll need to do this only for python when working with Django, so I recommend you have 1 terminal open for node stuff and 1 for Django. You'll need to make sure you activate the virtual environment every time you close your terminal to keep working with Django.
 
-- Once that's done, run `pip install -r requirements.txt` to install all the python packages from the requirements.txt file. These are instaled only in your virtual environment and not globally, to keep things clean.
+- Once that's done, run `pip install -r requirements.txt` to install all the python packages from the requirements.txt file. These are instaled only in your virtual environment and not globally, to keep things clean. Just like with `node install` you'll want to install the python requirements every time you pull/fetch.
 
 - Once you have your python virtual environment set up, you can change directories into the `Django/tagmystickies` folder and run `python manage.py makemigrations` then `python manage.py migrate` to set up the database. DO THIS EVERY TIME you pull/fetch or change any `models.py` file. No harm in running this every time you start a session of work.
 
