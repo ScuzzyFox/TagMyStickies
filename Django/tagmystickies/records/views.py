@@ -16,12 +16,13 @@ Others are more manual, like the ones using APIView.
 
 class UserEntryList(generics.ListCreateAPIView):
     '''
-    lists all user entries or creates a new one.
+    lists all user entries or creates a new one (GET and POST). Accepts "user" and "chat" query parameters in the URL for filtering. e.g. ?user=93648736&chat=39463847.
+
+    Supply an object with user field, chat field, and an optional status field when POSTing.
+    Example: {"user":1234,"chat":3845,"status":"This is my status".}
+    '''
+    '''
     the get_queryset function filters the list results against query parameters
-    https://scuzzyfox/stuff?this=that
-    ^^^ this=that is a query parameter
-    In this class, the query parameters can be used like this:
-    ?user=98376845&chat=364835883
     '''
 
     # this is defined in a specific way so that the generic view can use it
@@ -55,8 +56,7 @@ class UserEntryDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class StickerTagEntryList(generics.ListCreateAPIView):
     '''
-    lists all the sticker tag entries or creates a new one.
-    Same queryset logic as above with query parameters
+    lists all the sticker tag entries or creates a new one. Filterable with "tag", "user", "id", and "sticker" query parameters. 
     '''
     serializer_class = StickerTagEntrySerializer
 
