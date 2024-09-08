@@ -1,19 +1,37 @@
 # Telegram TagMyStickiesBot
 
-## Setup
+## Node Setup
 
 - You need Node.js to work on this project. Get it! https://nodejs.org/en/download/
 
 - Once installed, Run `npm install` in terminal at the root directory of this project to install the node packages required.
 
 - Create a file called `.env` in the root directory. It needs to have `ENVIRONMENT_CONTEXT = development` and
-  `TELEGRAM_BOT_TOKEN = <Token>`. You should make your own bot for dev purposes using @botfather on telegram! He'll give you a token you can paste into `.env`
+  `TELEGRAM_BOT_TOKEN = <Token>`, `SECRET_KEY=<Token>`. You should make your own bot for dev purposes using @botfather on telegram! He'll give you a token you can paste into `.env`
 
 - Check out https://github.com/yagop/node-telegram-bot-api, https://core.telegram.org/bots/api for info on the telegram bot api
 
-- Make sure you have git and know how to use it. You'll make your own feature branches and create pull requests to update the main code. You should always pull from the `development` branch and make pull requests to `development`. When you start a new feature, follow the feature branch convention detailed at the bottom of this doc.
+- Make sure you have git and know how to use it. You'll make your own feature branches and create pull requests to update the main code. You should always pull/fetch from the `development` branch and make pull requests to `development`. When you start a new feature, follow the feature branch convention detailed at the bottom of this doc.
 
 - Advanced: learn to use jest and test your code with unit tests.
+
+## Django Setup
+
+- For Django, you'll need python, make sure you have it installed.
+
+- Open a terminal in the /Django directory of the project. Run `python3 -m venv env` and then `source env/bin/activate` to create and activate a virtual python environment in your terminal. If you're on windows you'll need to run `cd env/Scripts && activate && cd ../../` instead. You'll need to do this only for python when working with Django, so I recommend you have 1 terminal open for node stuff and 1 for Django. You'll need to make sure you activate the virtual environment every time you close your terminal to keep working with Django.
+
+- Once that's done, run `pip install -r requirements.txt` to install all the python packages from the requirements.txt file. These are instaled only in your virtual environment and not globally, to keep things clean.
+
+- Once you have your python virtual environment set up, you can change directories into the `Django/tagmystickies` folder and run `python manage.py makemigrations` then `python manage.py migrate` to set up the database. DO THIS EVERY TIME you pull/fetch or change any `models.py` file. No harm in running this every time you start a session of work.
+
+- Once that's all set up, launch django's development server by running `python manage.py runserver`
+
+- You should now be able to visit `http://127.0.0.1:8000/` in a browser and get a 404 page. It should show you a list of all the URLs it tried, which kinda tells you what URLs are available. Browse something like http://127.0.0.1:8000/records/user-entries/ to see the API.
+
+- The API documentation isn't the best. You may want to look at the `/records/urls.py` and `/records/views.py` files to see how each endpoint is supposed to work.
+
+- look at https://www.django-rest-framework.org/tutorial/quickstart/ and https://docs.djangoproject.com/en/5.1/ for more information on Django and Django Rest Framework
 
 ## Project Overview
 
