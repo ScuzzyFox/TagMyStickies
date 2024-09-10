@@ -13,9 +13,9 @@ import {
   deleteTagSetURL,
   filterStickersURL,
   listStickerTagEntriesURL,
-  manipulateMultiStickerURL, //todo: post, delete, patch. view = ManipulateMultiStickerView
+  manipulateMultiStickerURL,
   massTagReplaceURL,
-  multiStickerURL, //todo: post, delete. view = MultiStickerView
+  multiStickerURL,
   stickerTagEntryDetailURL,
   userEntryDetailURL,
   userStickerTagListURL,
@@ -641,5 +641,193 @@ export async function massTagReplace(
   } catch (error) {
     console.error("Error while trying to replace multi tag set: ", error);
     throw error; // re-throw error for the caller to handle.
+  }
+}
+
+/**
+ * Adds a set of tags to a specific sticker for a user (POST).
+ *
+ * @param user The user's ID.
+ * @param sticker The sticker ID.
+ * @param tagsToAdd An array of tags to add to the sticker.
+ * @returns Promise<void>
+ */
+export async function addTagsToSticker(
+  user: number,
+  sticker: string,
+  tagsToAdd: string[]
+): Promise<void> {
+  try {
+    const response = await fetch(manipulateMultiStickerURL(user, sticker), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ tags_to_add: tagsToAdd }),
+    });
+
+    if (response.status === 400) {
+      throw new Error(`Invalid data submitted (400).`);
+    } else if (response.status === 404) {
+      throw new Error(`User or sticker not found (404).`);
+    } else if (response.status === 500) {
+      throw new Error(`Server error while adding tags to sticker (500).`);
+    } else if (!response.ok) {
+      throw new Error(
+        `Failed to add tags to sticker: ${response.statusText} (${response.status})`
+      );
+    }
+  } catch (error) {
+    console.error("Error adding tags to sticker:", error);
+    throw error;
+  }
+}
+
+/**
+ * Deletes a specific sticker for a user (DELETE).
+ *
+ * @param user The user's ID.
+ * @param sticker The sticker ID.
+ * @returns Promise<void>
+ */
+export async function deleteSticker(
+  user: number,
+  sticker: string
+): Promise<void> {
+  try {
+    const response = await fetch(manipulateMultiStickerURL(user, sticker), {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.status === 404) {
+      throw new Error(`Sticker or user not found (404).`);
+    } else if (response.status === 500) {
+      throw new Error(`Server error while deleting sticker (500).`);
+    } else if (!response.ok) {
+      throw new Error(
+        `Failed to delete sticker: ${response.statusText} (${response.status})`
+      );
+    }
+  } catch (error) {
+    console.error("Error deleting sticker:", error);
+    throw error;
+  }
+}
+
+/**
+ * Replaces tags on a specific sticker for a user (PATCH).
+ *
+ * @param user The user's ID.
+ * @param sticker The sticker ID.
+ * @param tagsToRemove An array of tags to remove.
+ * @param tagsToAdd An array of tags to add.
+ * @returns Promise<void>
+ */
+export async function replaceTagsOnSticker(
+  user: number,
+  sticker: string,
+  tagsToRemove: string[],
+  tagsToAdd: string[]
+): Promise<void> {
+  const data = { tags_to_remove: tagsToRemove, tags_to_add: tagsToAdd };
+
+  try {
+    const response = await fetch(manipulateMultiStickerURL(user, sticker), {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (response.status === 404) {
+      throw new Error(`Sticker or user not found (404).`);
+    } else if (response.status === 500) {
+      throw new Error(`Server error while replacing tags (500).`);
+    } else if (!response.ok) {
+      throw new Error(
+        `Failed to replace tags: ${response.statusText} (${response.status})`
+      );
+    }
+  } catch (error) {
+    console.error("Error replacing tags on sticker:", error);
+    throw error;
+  }
+}
+
+/**
+ * Tags multiple stickers for a user with multiple tags at once (POST).
+ *
+ * @param user The user's ID.
+ * @param stickers An array of sticker IDs.
+ * @param tags An array of tags to apply to the stickers.
+ * @returns Promise<void>
+ */
+export async function tagMultipleStickers(
+  user: number,
+  stickers: string[],
+  tags: string[]
+): Promise<void> {
+  try {
+    const response = await fetch(multiStickerURL(user), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ stickers, tags }),
+    });
+
+    if (response.status === 400) {
+      throw new Error(`Invalid data submitted (400).`);
+    } else if (response.status === 404) {
+      throw new Error(`User or stickers not found (404).`);
+    } else if (response.status === 500) {
+      throw new Error(`Server error while tagging stickers (500).`);
+    } else if (!response.ok) {
+      throw new Error(
+        `Failed to tag stickers: ${response.statusText} (${response.status})`
+      );
+    }
+  } catch (error) {
+    console.error("Error tagging multiple stickers:", error);
+    throw error;
+  }
+}
+
+/**
+ * Deletes multiple stickers for a user (DELETE).
+ *
+ * @param user The user's ID.
+ * @param stickers An array of sticker IDs to delete.
+ * @returns Promise<void>
+ */
+export async function deleteMultipleStickers(
+  user: number,
+  stickers: string[]
+): Promise<void> {
+  try {
+    const response = await fetch(multiStickerURL(user), {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ stickers }),
+    });
+
+    if (response.status === 404) {
+      throw new Error(`User or stickers not found (404).`);
+    } else if (response.status === 500) {
+      throw new Error(`Server error while deleting stickers (500).`);
+    } else if (!response.ok) {
+      throw new Error(
+        `Failed to delete stickers: ${response.statusText} (${response.status})`
+      );
+    }
+  } catch (error) {
+    console.error("Error deleting multiple stickers:", error);
+    throw error;
   }
 }
