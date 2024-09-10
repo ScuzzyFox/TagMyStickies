@@ -15,7 +15,7 @@ urlpatterns = [
          name="sticker-tag-entries-list"),
     path('records/ste/<int:pk>/', views.StickerTagEntryDetail.as_view(),
          name="sticker-tag-entry-detail"),
-    path('records/filter-stickers/',
+    path('records/filter-stickers/<int:user>/',
          views.FilterStickersView.as_view(), name="filter-stickers"),
     path('records/user-sticker-tag-list/<int:user>/',
          views.UserStickerTagList.as_view(), name="user-sticker-tag-list"),

@@ -113,9 +113,13 @@ class FilterStickersView(APIView):
     Note that POST is used instead of GET.
     '''
 
-    def post(self, request):
+    def post(self, request, user):
+        usr = get_object_or_404(UserEntry, user=user)
+        ndata = request.data
+        ndata["user"] = usr.user
+
         # Validate the input using StickerFilterSerializer
-        serializer = StickerFilterSerializer(data=request.data)
+        serializer = StickerFilterSerializer(data=ndata)
 
         if serializer.is_valid():
             user = serializer.validated_data['user']
