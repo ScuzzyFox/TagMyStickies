@@ -14,7 +14,7 @@ import {
   filterStickersURL,
   listStickerTagEntriesURL,
   manipulateMultiStickerURL, //todo: post, delete, patch. view = ManipulateMultiStickerView
-  massTagReplaceURL, //todo: patch. view = MassTagReplaceView
+  massTagReplaceURL,
   multiStickerURL, //todo: post, delete. view = MultiStickerView
   stickerTagEntryDetailURL,
   userEntryDetailURL,
@@ -593,6 +593,53 @@ export async function deleteMultiTagSet(
     return;
   } catch (error) {
     console.error("Error while trying to delete multi tag set: ", error);
+    throw error; // re-throw error for the caller to handle.
+  }
+}
+
+/**
+ * Removes a set of tags and replaces it with another set of tags on multiple stickers at once.
+ *
+ * @param user the integer ID of the user's data you want to manipulate
+ * @param stickerList an array of sticker file ID's to be affected
+ * @param removeTagList an array of the tags you want to remove from the stickers
+ * @param addTagList an array of the tags you want to add to the stickers.
+ * @returns void
+ */
+export async function massTagReplace(
+  user: number,
+  stickerList: string[],
+  removeTagList: string[],
+  addTagList: string[]
+): Promise<void> {
+  const data = {
+    stickers: stickerList,
+    tags_to_remove: removeTagList,
+    tags_to_add: addTagList,
+  };
+  try {
+    const response = await fetch(massTagReplaceURL(user), {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (response.status === 404) {
+      throw new Error(`user ${user} not found. (404)`);
+    } else if (response.status === 500) {
+      throw new Error(
+        "Server Error while trying to replace multi tag list. (500)"
+      );
+    } else if (!response.ok) {
+      throw new Error(
+        `Error while trying to replace multi tag list: ${response.statusText} (${response.status})`
+      );
+    }
+    return;
+  } catch (error) {
+    console.error("Error while trying to replace multi tag set: ", error);
     throw error; // re-throw error for the caller to handle.
   }
 }
