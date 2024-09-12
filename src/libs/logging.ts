@@ -9,7 +9,11 @@ export function devLog(data?: any, ...optionalParameters: any[]): void {
     process.env.ENVIRONMENT_CONTEXT &&
     process.env.ENVIRONMENT_CONTEXT.toLowerCase().includes("dev")
   ) {
-    console.log(data, optionalParameters);
+    if (optionalParameters && optionalParameters.length > 0) {
+      console.log(data, optionalParameters);
+    } else {
+      console.log(data);
+    }
   }
 }
 
@@ -24,21 +28,10 @@ export function prodLog(data?: any, ...optionalParameters: any[]): void {
     process.env.ENVIRONMENT_CONTEXT &&
     process.env.ENVIRONMENT_CONTEXT.toLowerCase().includes("prod")
   ) {
-    console.log(data, optionalParameters);
+    if (optionalParameters && optionalParameters.length > 0) {
+      console.log(data, optionalParameters);
+    } else {
+      console.log(data);
+    }
   }
-}
-
-/**
- * Use isDev when you want to find out if we're in a development/testing environement or not.
- *
- * @returns boolean or undefined
- */
-export function isDev(): boolean | undefined {
-  if (!process.env.ENVIRONMENT_CONTEXT) {
-    return undefined;
-  }
-  if (process.env.ENVIRONMENT_CONTEXT.toLowerCase().includes("dev")) {
-    return true;
-  }
-  return false;
 }

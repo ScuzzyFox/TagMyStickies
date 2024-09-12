@@ -5,9 +5,14 @@
 /**
  * Place Imports here
  */
-import { startEventHandlers } from "libs/eventHandlers/handlers";
-import TelegramBot from "node-telegram-bot-api";
 import "dotenv/config";
+import { isDev } from "libs/envUtils";
+import { devLog } from "libs/logging";
+devLog("Telegram TagMyStickies bot starting up...");
+import { startEventHandlers } from "libs/eventHandlers/handlers";
+import TelegramBot, { InlineKeyboardButton } from "node-telegram-bot-api";
+import { setupInlineExperiment } from "libs/experiments/inlineKeyboardExperiments";
+import { setupInlineQueryExperiment } from "libs/experiments/inlineQueryExperiments";
 //end import
 
 /**
@@ -15,10 +20,12 @@ import "dotenv/config";
  */
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
+devLog("Bot and token loaded.");
 //end constants
 
 //todo: setup bot "/start" event handler. It should add the user to the users database and then tell the
 //todo: user the instructions
+devLog("Setting up listeners.");
 startEventHandlers(bot);
 
 //todo: since the bot will need a sticker and then a bunch of tags, the bot needs to know some sort of "status"
@@ -51,3 +58,15 @@ startEventHandlers(bot);
 //! I think the anwer is yes -scuzzy
 
 //todo: setup bot /multitag, /modifymultitag and /done command. described above.
+
+// * experiments here *
+if (isDev()) {
+  devLog("Setting up experiments.");
+  setupInlineExperiment(bot);
+
+  //! Disable the inline query experiment if you have the production one enabled and vice versa.
+  //! because there should probably only ever be one "inline_query" event listener active at a time.
+  setupInlineQueryExperiment(bot);
+}
+
+devLog("Bot is launched and running.");
