@@ -8,7 +8,7 @@ import { BotCommand } from "node-telegram-bot-api";
 //not setting a language code
 export const experimentalCommands: BotCommand[] = [
   {
-    command: "inlineExperiment",
+    command: "inline_experiment",
     description: "Demonstrates inline keyboard functionality.",
   },
 ];

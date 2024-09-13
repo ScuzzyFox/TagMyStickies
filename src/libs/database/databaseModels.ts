@@ -2,6 +2,16 @@
  * Typescript interfaces/type declarations should go here!
  */
 
+// The different modes we can be in.
+export const DEFAULT_STATE_CODE = 0x0000;
+export const TAG_MULTI = 0x0006;
+export const DELETE_STICKER = 0x0004;
+export const DELETE_MULTIPLE_STICKERS = 0x0007;
+export const REMOVE_TAG_SET = 0x0001;
+export const REMOVE_MULTI_TAG_SET = 0x0002;
+export const REPLACE_TAGS = 0x0005;
+export const MASS_TAG_REPLACE = 0x0003;
+
 export interface StickerTagEntry {
   id?: number;
   sticker: string;
@@ -35,4 +45,11 @@ export interface FullUserData {
 
 export interface TagsToRemove {
   tags_to_remove: string[];
+}
+
+export interface UserState {
+  stateCode: number;
+  stickers?: string[];
+  tags_to_add?: string[];
+  tags_to_remove?: string[];
 }

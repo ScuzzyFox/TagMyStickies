@@ -15,6 +15,9 @@ var startEventHandlerscv1 = {
  */
 export function startEventHandlers(bot: TelegramBot): void {
   bot.onText(/\/start/, (msg: Message) => {
+    //TODO: check if the user is already in the database
+    //TODO: if they are, check if the current chatID is different from the one on the database.
+    //TODO: if chatID is different, then update the chatID.
     //TODO: add user to the database
     //TODO: save chatID to the database
     //TODO: set the user interaction state to accepting a sticker

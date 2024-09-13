@@ -33,7 +33,7 @@ export function setupInlineExperiment(bot: TelegramBot) {
       );
     });
 
-    bot.onText(/\/inlineExperiment/, (msg, match) => {
+    bot.onText(/\/inline_experiment/, (msg, match) => {
       /**
        * An inline keyboard consists of a 2D array of keyboard buttons.
        */

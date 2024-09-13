@@ -9,10 +9,12 @@ import "dotenv/config";
 import { isDev } from "libs/envUtils";
 import { devLog } from "libs/logging";
 devLog("Telegram TagMyStickies bot starting up...");
-import { startEventHandlers } from "libs/eventHandlers/handlers";
+import { startEventHandlers } from "libs/commands/start";
 import TelegramBot, { InlineKeyboardButton } from "node-telegram-bot-api";
 import { setupInlineExperiment } from "libs/experiments/inlineKeyboardExperiments";
 import { setupInlineQueryExperiment } from "libs/experiments/inlineQueryExperiments";
+import { initializeMetadata } from "libs/botMetaData";
+import { initializeBotCommands } from "libs/commands/commandsList";
 //end import
 
 /**
@@ -23,6 +25,13 @@ const bot = new TelegramBot(token, { polling: true });
 devLog("Bot and token loaded.");
 //end constants
 
+try {
+  initializeMetadata(bot);
+} catch (error) {
+  console.error("Error initializing bot metadata.", error);
+}
+
+initializeBotCommands(bot);
 //todo: setup bot "/start" event handler. It should add the user to the users database and then tell the
 //todo: user the instructions
 devLog("Setting up listeners.");
