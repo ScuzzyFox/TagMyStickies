@@ -7,13 +7,36 @@ import TelegramBot, { BotCommand } from "node-telegram-bot-api";
 import { experimentalCommands } from "libs/experiments/experimentalCommands";
 import { isDev } from "libs/envUtils";
 
+//Commands can only be lower-case.
 const prodCommands: BotCommand[] = [
   {
     command: "start",
-    description: "Starts or updates a session",
+    description: "Starts or updates a session.",
   },
+  {
+    command: "next",
+    description: "Move on to the next step.",
+  },
+  {
+    command: "done",
+    description: "Tell me you're finished.",
+  },
+  {
+    command: "cancel",
+    description: "Cancel what we're doing right now.",
+  },
+  {
+    command: "menu",
+    description: "Show the menu of options!",
+  },
+  { command: "help", description: "Get help on how to use me!" },
 ];
 
+/**
+ * Sets up the development (if any) and production commands for the bot.
+ *
+ * @param bot Telegram bot handle
+ */
 export function initializeBotCommands(bot: TelegramBot) {
   let commands: BotCommand[] = isDev()
     ? [...prodCommands, ...experimentalCommands]

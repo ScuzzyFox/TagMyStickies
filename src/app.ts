@@ -10,7 +10,7 @@ import { isDev } from "libs/envUtils";
 import { devLog } from "libs/logging";
 devLog("Telegram TagMyStickies bot starting up...");
 import { startEventHandlers } from "libs/commands/start";
-import TelegramBot, { InlineKeyboardButton } from "node-telegram-bot-api";
+import TelegramBot from "node-telegram-bot-api";
 import { setupInlineExperiment } from "libs/experiments/inlineKeyboardExperiments";
 import { setupInlineQueryExperiment } from "libs/experiments/inlineQueryExperiments";
 import { initializeMetadata } from "libs/botMetaData";
@@ -75,7 +75,7 @@ if (isDev()) {
 
   //! Disable the inline query experiment if you have the production one enabled and vice versa.
   //! because there should probably only ever be one "inline_query" event listener active at a time.
-  setupInlineQueryExperiment(bot);
+  //setupInlineQueryExperiment(bot);
 }
 
 devLog("Bot is launched and running.");

@@ -3,7 +3,9 @@
  */
 
 // The different modes we can be in.
+//todo: add as many as you need.
 export const DEFAULT_STATE_CODE = 0x0000;
+export const DEFAULT_STICKER_RECEIVED_READY_FOR_TAGS = 0x0008;
 export const TAG_MULTI = 0x0006;
 export const DELETE_STICKER = 0x0004;
 export const DELETE_MULTIPLE_STICKERS = 0x0007;
@@ -49,6 +51,7 @@ export interface TagsToRemove {
 
 export interface UserState {
   stateCode: number;
+  singleSticker?: string;
   stickers?: string[];
   tags_to_add?: string[];
   tags_to_remove?: string[];
