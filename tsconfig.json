@@ -9,7 +9,7 @@
     "resolveJsonModule": true,
     "baseUrl": "./src", // Set the baseUrl to your source directory
     "paths": {
-      "libs/*": ["libs/*"] // Define a path alias
+      "libs/<em>": ["libs/</em>"] // Define a path alias
     }
   },
   "lib": ["es2015"],
