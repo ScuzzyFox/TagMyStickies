@@ -16,7 +16,11 @@ import {
 } from "libs/database/databaseModels";
 import TelegramBot, { Message, Metadata } from "node-telegram-bot-api";
 
-//todo: add comments
+/**
+ * Default function of the bot, that adds tags to a single sticker without needing a /command.
+ * 
+ * @param bot telegram bot handle uwu
+ */
 export function setupDefaultMode(bot: TelegramBot) {
   bot.on("sticker", async (message: Message, metadata: Metadata) => {
     const user = message.from.id;
@@ -62,17 +66,24 @@ export function setupDefaultMode(bot: TelegramBot) {
     if (!messageContents) {
       return;
     }
-    //todo: message should not have a /command in it. if it does, we should ignore and return.
-    //todo: parse comma and/or space delimmeted list of tags into tags variable.
-    //todo: if the list can't be parsed (bad formatting), we should tell the user about this.
-    //todo: if the list can be parsed but some of the tags have naughty characters in them, we should tell the user the list was
-    //todo: accepted, but that some tags were tossed out because of the characters. the list of tossed tags should be shown to the user.
+    if ((/\/\w+/).test(messageContents)) {
+      return;
+    }
+    console.log("wooo");
+    let cleaneduptags = gettagsfromstring(messageContents);
+    if ((cleaneduptags.tags.length <= 0) && (cleaneduptags.removedtags.length <= 0)) {
+      text = "You evil boyo! Those aren't tags! XD";
+      bot.sendMessage(chat, text);
+      return;
+    }
+    tags = cleaneduptags.tags;
+    tags_to_toss = cleaneduptags.removedtags;
 
     if (tags_to_toss.length > 0) {
       text =
         "Some tags were added to your sticker successfully. However, some had invalid characters so they weren't aded:\n\n";
       tags_to_toss.forEach((tag, index) => {
-        text += tag + ", "; //todo: polish this. don't add the comma on the last item.
+        text += (((index + 1) < tags_to_toss.length) ? (tag + ", ") : tag);
       });
     } else {
       text = "I added your tags to the sticker! Ready for more if you are.";
@@ -93,4 +104,15 @@ export function setupDefaultMode(bot: TelegramBot) {
         bot.sendMessage(chat, text);
       });
   });
+}
+
+export function gettagsfromstring(string) {
+  var alltags = string.split(/[\s,]+/).filter(Boolean)
+  var filteredtags = alltags.filter(element => {
+    return !([' ', '\n', '\r', ',', '"']).some(char => element.includes(char));
+  });
+  var removedtags = alltags.filter(element => {
+    return !filteredtags.some(char => element.includes(char));
+  });
+  return { tags: filteredtags, removedtags: removedtags };
 }
