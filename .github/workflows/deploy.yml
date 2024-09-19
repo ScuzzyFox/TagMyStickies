@@ -15,7 +15,7 @@ jobs:
 
       - name: Sync repo to server
         run: |
-          ssh -o StrictHostKeyChecking=no root@2604:a880:400:d1::1627:f001 << 'EOF'
+          ssh -o StrictHostKeyChecking=no root@68.183.142.6 << 'EOF'
             cd ~/TagMyStickies
             git pull origin main
             chmod +x linuxProdStartupScript.sh
