@@ -13,13 +13,16 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v2
 
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.DIGITAL_OCEAN_PRIVATE_KEY }}
+
       - name: Sync repo to server
         run: |
-          ssh -o StrictHostKeyChecking=no root@68.183.142.6 << 'EOF'
+          ssh -T -o StrictHostKeyChecking=no root@68.183.142.6 << 'EOF'
             cd ~/TagMyStickies
             git pull origin main
             chmod +x linuxProdStartupScript.sh
             ./linuxProdStartupScript.sh
           EOF
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.DIGITAL_OCEAN_PRIVATE_KEY }} # Set this up in GitHub Secrets
