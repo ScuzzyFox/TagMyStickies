@@ -3,21 +3,23 @@ name: Deploy to Server
 on:
   push:
     branches:
-      - main  # or any branch you want to trigger the sync from
+      - main # or any branch you want to trigger the sync from
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout the code
-      uses: actions/checkout@v2
+      - name: Checkout the code
+        uses: actions/checkout@v2
 
-    - name: Sync repo to server
-      run: |
-        ssh -o StrictHostKeyChecking=no root@[2604:a880:400:d1::1627:f001] << 'EOF'
-          cd ~/TagMyStickies
-          git pull origin main
-        EOF
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.DIGITAL_OCEAN_PRIVATE_KEY }} # Set this up in GitHub Secrets
+      - name: Sync repo to server
+        run: |
+          ssh -o StrictHostKeyChecking=no root@[2604:a880:400:d1::1627:f001] << 'EOF'
+            cd ~/TagMyStickies
+            git pull origin main
+            chmod +x linuxProdStartupScript.sh
+            ./linuxProdStartupScript.sh
+          EOF
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DIGITAL_OCEAN_PRIVATE_KEY }} # Set this up in GitHub Secrets
