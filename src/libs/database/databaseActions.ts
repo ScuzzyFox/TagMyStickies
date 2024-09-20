@@ -2,6 +2,12 @@
  * CRUD operations for all the database objects
  */
 import {
+  NotFoundError,
+  ServerError,
+  UnknownError,
+  ValidationError,
+} from "libs/errors/DatabaseAPIErrors";
+import {
   StickerTagEntry,
   UserEntry,
   FilterStickersInput,
@@ -21,12 +27,21 @@ import {
   userStickerTagListURL,
 } from "./urls";
 
+interface DatabaseActionResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: {
+    message: string;
+    type: string;
+  };
+}
+
 /**
  * Retrieves a specific User Entry
  * Data comes back in the form of {"user":1234,"chat":456,"status":"active"}
  *
  * @param userID The integer user ID of the user entry you're trying to retrieve
- * @returns Promise<UserEntry> Returns the fetched user entry or throws an error if unsuccessful
+ * @returns Promise<DatabaseActionResponse<UserEntry>> Returns the fetched user entry or throws an error if unsuccessful
  */
 export async function retrieveUserEntry(userID: number): Promise<UserEntry> {
   try {
@@ -38,11 +53,11 @@ export async function retrieveUserEntry(userID: number): Promise<UserEntry> {
     });
 
     if (response.status === 404) {
-      throw new Error(`User entry with ID ${userID} not found (404).`);
+      throw new NotFoundError(`User entry with ID ${userID} not found (404).`);
     } else if (response.status === 500) {
-      throw new Error(`Server error while fetching user entry (500).`);
+      throw new ServerError(`Server error while fetching user entry (500).`);
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to retrieve user entry: ${response.statusText} (${response.status}).`
       );
     }
@@ -50,7 +65,6 @@ export async function retrieveUserEntry(userID: number): Promise<UserEntry> {
     const data: UserEntry = await response.json(); // Parse JSON response
     return data; // Return the parsed data
   } catch (error) {
-    console.error("Error in retrieveUserEntry:", error);
     throw error; // Re-throw the error for the caller to handle
   }
 }
@@ -86,11 +100,13 @@ export async function CreateUserEntry(
     });
 
     if (response.status === 400) {
-      throw new Error(`Invalid data submitted (400). Please check your input.`);
+      throw new ValidationError(
+        `Invalid data submitted (400). Please check your input.`
+      );
     } else if (response.status === 500) {
-      throw new Error(`Server error while creating user entry (500).`);
+      throw new ServerError(`Server error while creating user entry (500).`);
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to create user entry: ${response.statusText} (${response.status}).`
       );
     }
@@ -98,7 +114,6 @@ export async function CreateUserEntry(
     const data: UserEntry = await response.json(); // Parse and return the newly created UserEntry object
     return data;
   } catch (error) {
-    console.error("Error in CreateUserEntry:", error);
     throw error; // Re-throw the error for the caller to handle
   }
 }
@@ -135,11 +150,11 @@ export async function listUserEntries(params?: {
     });
 
     if (response.status === 404) {
-      throw new Error(`No user entries found (404).`);
+      throw new NotFoundError(`No user entries found (404).`);
     } else if (response.status === 500) {
-      throw new Error(`Server error while fetching user entries (500).`);
+      throw new ServerError(`Server error while fetching user entries (500).`);
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to retrieve user entries: ${response.statusText} (${response.status}).`
       );
     }
@@ -147,7 +162,6 @@ export async function listUserEntries(params?: {
     const data: UserEntry[] = await response.json(); // Parse and return the list of UserEntry objects
     return data;
   } catch (error) {
-    console.error("Error in listUserEntries:", error);
     throw error; // Re-throw the error for the caller to handle
   }
 }
@@ -170,16 +184,15 @@ export async function deleteUserEntry(userID: number): Promise<void> {
     });
 
     if (response.status === 404) {
-      throw new Error(`User entry with ID ${userID} not found (404).`);
+      throw new NotFoundError(`User entry with ID ${userID} not found (404).`);
     } else if (response.status === 500) {
-      throw new Error(`Server error while deleting user entry (500).`);
+      throw new ServerError(`Server error while deleting user entry (500).`);
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to delete user entry: ${response.statusText} (${response.status}).`
       );
     }
   } catch (error) {
-    console.error("Error in deleteUserEntry:", error);
     throw error; // Re-throw the error for the caller to handle
   }
 }
@@ -207,13 +220,15 @@ export async function patchUserEntry(
     });
 
     if (response.status === 400) {
-      throw new Error(`Invalid data submitted (400). Please check your input.`);
+      throw new ValidationError(
+        `Invalid data submitted (400). Please check your input.`
+      );
     } else if (response.status === 404) {
-      throw new Error(`User entry with ID ${userID} not found (404).`);
+      throw new NotFoundError(`User entry with ID ${userID} not found (404).`);
     } else if (response.status === 500) {
-      throw new Error(`Server error while updating user entry (500).`);
+      throw new ServerError(`Server error while updating user entry (500).`);
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to update user entry: ${response.statusText} (${response.status}).`
       );
     }
@@ -221,7 +236,6 @@ export async function patchUserEntry(
     const data: UserEntry = await response.json(); // Parse and return the updated UserEntry object
     return data;
   } catch (error) {
-    console.error("Error in patchUserEntry:", error);
     throw error; // Re-throw the error for the caller to handle
   }
 }
@@ -245,13 +259,15 @@ export async function retrieveStickerTagEntry(
     });
 
     if (response.status === 404) {
-      throw new Error(
+      throw new NotFoundError(
         `Sticker tag entry with ID ${stickerTagID} not found (404).`
       );
     } else if (response.status === 500) {
-      throw new Error(`Server error while fetching sticker tag entry (500).`);
+      throw new ServerError(
+        `Server error while fetching sticker tag entry (500).`
+      );
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to retrieve sticker tag entry: ${response.statusText} (${response.status}).`
       );
     }
@@ -259,7 +275,6 @@ export async function retrieveStickerTagEntry(
     const data: StickerTagEntry = await response.json(); // Parse JSON response
     return data;
   } catch (error) {
-    console.error("Error in retrieveStickerTagEntry:", error);
     throw error; // Re-throw the error for the caller to handle
   }
 }
@@ -296,11 +311,15 @@ export async function createStickerTagEntry(
     });
 
     if (response.status === 400) {
-      throw new Error(`Invalid data submitted (400). Please check your input.`);
+      throw new ValidationError(
+        `Invalid data submitted (400). Please check your input.`
+      );
     } else if (response.status === 500) {
-      throw new Error(`Server error while creating sticker tag entry (500).`);
+      throw new ServerError(
+        `Server error while creating sticker tag entry (500).`
+      );
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to create sticker tag entry: ${response.statusText} (${response.status}).`
       );
     }
@@ -308,7 +327,6 @@ export async function createStickerTagEntry(
     const data: StickerTagEntry = await response.json();
     return data; // Return the created StickerTagEntry
   } catch (error) {
-    console.error("Error in createStickerTagEntry:", error);
     throw error; // Re-throw the error for the caller to handle
   }
 }
@@ -333,18 +351,19 @@ export async function deleteStickerTagEntry(
     });
 
     if (response.status === 404) {
-      throw new Error(
+      throw new NotFoundError(
         `Sticker tag entry with ID ${stickerTagID} not found (404).`
       );
     } else if (response.status === 500) {
-      throw new Error(`Server error while deleting sticker tag entry (500).`);
+      throw new ServerError(
+        `Server error while deleting sticker tag entry (500).`
+      );
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to delete sticker tag entry: ${response.statusText} (${response.status}).`
       );
     }
   } catch (error) {
-    console.error("Error in deleteStickerTagEntry:", error);
     throw error; // Re-throw the error for the caller to handle
   }
 }
@@ -372,15 +391,19 @@ export async function patchStickerTagEntry(
     });
 
     if (response.status === 400) {
-      throw new Error(`Invalid data submitted (400). Please check your input.`);
+      throw new ValidationError(
+        `Invalid data submitted (400). Please check your input.`
+      );
     } else if (response.status === 404) {
-      throw new Error(
+      throw new NotFoundError(
         `Sticker tag entry with ID ${stickerTagID} not found (404).`
       );
     } else if (response.status === 500) {
-      throw new Error(`Server error while updating sticker tag entry (500).`);
+      throw new ServerError(
+        `Server error while updating sticker tag entry (500).`
+      );
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to update sticker tag entry: ${response.statusText} (${response.status}).`
       );
     }
@@ -388,7 +411,6 @@ export async function patchStickerTagEntry(
     const data: StickerTagEntry = await response.json(); // Parse and return the updated StickerTagEntry object
     return data;
   } catch (error) {
-    console.error("Error in patchStickerTagEntry:", error);
     throw error; // Re-throw the error for the caller to handle
   }
 }
@@ -428,13 +450,13 @@ export async function listStickerTagEntries(params?: {
     });
 
     if (response.status === 404) {
-      throw new Error(`Not found (404).`);
+      throw new NotFoundError(`Not found (404).`);
     } else if (response.status === 500) {
-      throw new Error(
+      throw new ServerError(
         `Server error while fetching sticker tags for user (500).`
       );
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to retrieve sticker tags: ${response.statusText} (${response.status}).`
       );
     }
@@ -442,7 +464,6 @@ export async function listStickerTagEntries(params?: {
     const data: StickerTagEntry[] = await response.json(); // Parse and return the list of StickerTagEntry objects
     return data;
   } catch (error) {
-    console.error("Error in listUserStickerTags:", error);
     throw error; // Re-throw the error for the caller to handle
   }
 }
@@ -467,11 +488,11 @@ export async function filterStickers(
       body: JSON.stringify(inputData),
     });
     if (response.status === 404) {
-      throw new Error("Not found (404)");
+      throw new NotFoundError("Not found (404)");
     } else if (response.status === 500) {
-      throw new Error("Server error while fetching stickers list.");
+      throw new ServerError("Server error while fetching stickers list.");
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to fetch sticker list: ${response.statusText} (${response.status})`
       );
     }
@@ -479,7 +500,6 @@ export async function filterStickers(
     const data: string[] = (await response.json()).stickers;
     return data;
   } catch (error) {
-    console.error("Error in filterStickers:", error);
     throw error; //Re-throw error for the caller to handle
   }
 }
@@ -500,11 +520,13 @@ export async function userStickerTagList(user: number): Promise<FullUserData> {
     });
 
     if (response.status === 404) {
-      throw new Error(`user ${user} not found. (404)`);
+      throw new NotFoundError(`user ${user} not found. (404)`);
     } else if (response.status === 500) {
-      throw new Error("Server Error while trying to retrieve user data. (500)");
+      throw new ServerError(
+        "Server Error while trying to retrieve user data. (500)"
+      );
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Error while trying to retrieve data: ${response.statusText} (${response.status})`
       );
     }
@@ -512,7 +534,6 @@ export async function userStickerTagList(user: number): Promise<FullUserData> {
     const data: FullUserData = await response.json();
     return data;
   } catch (error) {
-    console.error("Error in userStickerTagList: ", error);
     throw error; // Re-throw error for the caller to handle.
   }
 }
@@ -540,17 +561,18 @@ export async function deleteTagSet(
     });
 
     if (response.status === 404) {
-      throw new Error(`user ${user} not found. (404)`);
+      throw new NotFoundError(`user ${user} not found. (404)`);
     } else if (response.status === 500) {
-      throw new Error("Server Error while trying to delete tag list. (500)");
+      throw new ServerError(
+        "Server Error while trying to delete tag list. (500)"
+      );
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Error while trying to delete tag list: ${response.statusText} (${response.status})`
       );
     }
     return;
   } catch (error) {
-    console.error("Error while trying to delete tag set: ", error);
     throw error; // re-throw error for the caller to handle.
   }
 }
@@ -580,19 +602,18 @@ export async function deleteMultiTagSet(
     });
 
     if (response.status === 404) {
-      throw new Error(`user ${user} not found. (404)`);
+      throw new NotFoundError(`user ${user} not found. (404)`);
     } else if (response.status === 500) {
-      throw new Error(
+      throw new ServerError(
         "Server Error while trying to delete multi tag list. (500)"
       );
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Error while trying to delete multi tag list: ${response.statusText} (${response.status})`
       );
     }
     return;
   } catch (error) {
-    console.error("Error while trying to delete multi tag set: ", error);
     throw error; // re-throw error for the caller to handle.
   }
 }
@@ -627,19 +648,18 @@ export async function massTagReplace(
     });
 
     if (response.status === 404) {
-      throw new Error(`user ${user} not found. (404)`);
+      throw new NotFoundError(`user ${user} not found. (404)`);
     } else if (response.status === 500) {
-      throw new Error(
+      throw new ServerError(
         "Server Error while trying to replace multi tag list. (500)"
       );
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Error while trying to replace multi tag list: ${response.statusText} (${response.status})`
       );
     }
     return;
   } catch (error) {
-    console.error("Error while trying to replace multi tag set: ", error);
     throw error; // re-throw error for the caller to handle.
   }
 }
@@ -667,18 +687,17 @@ export async function addTagsToSticker(
     });
 
     if (response.status === 400) {
-      throw new Error(`Invalid data submitted (400).`);
+      throw new ValidationError(`Invalid data submitted (400).`);
     } else if (response.status === 404) {
-      throw new Error(`User or sticker not found (404).`);
+      throw new NotFoundError(`User or sticker not found (404).`);
     } else if (response.status === 500) {
-      throw new Error(`Server error while adding tags to sticker (500).`);
+      throw new ServerError(`Server error while adding tags to sticker (500).`);
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to add tags to sticker: ${response.statusText} (${response.status})`
       );
     }
   } catch (error) {
-    console.error("Error adding tags to sticker:", error);
     throw error;
   }
 }
@@ -703,16 +722,15 @@ export async function deleteSticker(
     });
 
     if (response.status === 404) {
-      throw new Error(`Sticker or user not found (404).`);
+      throw new NotFoundError(`Sticker or user not found (404).`);
     } else if (response.status === 500) {
-      throw new Error(`Server error while deleting sticker (500).`);
+      throw new ServerError(`Server error while deleting sticker (500).`);
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to delete sticker: ${response.statusText} (${response.status})`
       );
     }
   } catch (error) {
-    console.error("Error deleting sticker:", error);
     throw error;
   }
 }
@@ -744,16 +762,15 @@ export async function replaceTagsOnSticker(
     });
 
     if (response.status === 404) {
-      throw new Error(`Sticker or user not found (404).`);
+      throw new NotFoundError(`Sticker or user not found (404).`);
     } else if (response.status === 500) {
-      throw new Error(`Server error while replacing tags (500).`);
+      throw new ServerError(`Server error while replacing tags (500).`);
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to replace tags: ${response.statusText} (${response.status})`
       );
     }
   } catch (error) {
-    console.error("Error replacing tags on sticker:", error);
     throw error;
   }
 }
@@ -781,18 +798,17 @@ export async function tagMultipleStickers(
     });
 
     if (response.status === 400) {
-      throw new Error(`Invalid data submitted (400).`);
+      throw new ValidationError(`Invalid data submitted (400).`);
     } else if (response.status === 404) {
-      throw new Error(`User or stickers not found (404).`);
+      throw new NotFoundError(`User or stickers not found (404).`);
     } else if (response.status === 500) {
-      throw new Error(`Server error while tagging stickers (500).`);
+      throw new ServerError(`Server error while tagging stickers (500).`);
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to tag stickers: ${response.statusText} (${response.status})`
       );
     }
   } catch (error) {
-    console.error("Error tagging multiple stickers:", error);
     throw error;
   }
 }
@@ -818,16 +834,15 @@ export async function deleteMultipleStickers(
     });
 
     if (response.status === 404) {
-      throw new Error(`User or stickers not found (404).`);
+      throw new NotFoundError(`User or stickers not found (404).`);
     } else if (response.status === 500) {
-      throw new Error(`Server error while deleting stickers (500).`);
+      throw new ServerError(`Server error while deleting stickers (500).`);
     } else if (!response.ok) {
-      throw new Error(
+      throw new UnknownError(
         `Failed to delete stickers: ${response.statusText} (${response.status})`
       );
     }
   } catch (error) {
-    console.error("Error deleting multiple stickers:", error);
     throw error;
   }
 }
