@@ -30,12 +30,10 @@ export function startEventHandlers(bot: TelegramBot): void {
     try {
       // check if user is in the database. Throw error if they aren't
       userEntry = await retrieveUserEntry(userEntry.user);
-      if (!userEntry) {
-        throw new NotFoundError("User not found");
-      }
     } catch (error) {
       // if user isn't in the database, add them.
       if (error instanceof NotFoundError) {
+        devLog("Not found error! going to make a new user.");
         const state: UserState = {
           stateCode: DEFAULT_STATE_CODE,
         };

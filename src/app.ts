@@ -15,6 +15,8 @@ import { setupInlineExperiment } from "libs/experiments/inlineKeyboardExperiment
 import { setupInlineQueryExperiment } from "libs/experiments/inlineQueryExperiments";
 import { initializeMetadata } from "libs/botMetaData";
 import { initializeBotCommands } from "libs/commands/commandsList";
+import { setupInlineQueryListener } from "libs/commands/inlineQueryListener";
+import { setupDefaultMode } from "libs/commands/defaultMode";
 //end import
 
 /**
@@ -32,10 +34,15 @@ try {
 }
 
 initializeBotCommands(bot);
-//todo: setup bot "/start" event handler. It should add the user to the users database and then tell the
-//todo: user the instructions
+
 devLog("Setting up listeners.");
 startEventHandlers(bot);
+setupInlineQueryListener(bot);
+setupDefaultMode(bot);
+bot.on("polling_error", (error) => {
+  console.log("Polling error:", error);
+});
+devLog("Listeners set up.");
 
 //todo: since the bot will need a sticker and then a bunch of tags, the bot needs to know some sort of "status"
 //todo: or what "step" in the process it's on. no "/command" needed, just send a sticker rawdog
@@ -60,11 +67,6 @@ startEventHandlers(bot);
 //todo setup bot "/delete_data" command. this should wipe the users data and needs to be confirmed.
 
 //todo setup bot response for any non-command + non-sticker + non-tag responses.
-
-//! the normal mode is to send a sticker, and tag it with a bunch of tags. resulting in user tagging stickers 1 by 1.
-//! should there also be a way to send some tags and some stickers to group tag them?
-//! e.g. "send me a list of tags", "now send me a bunch of stickers that you want to have these tags. hit /done when you're done."
-//! I think the anwer is yes -scuzzy
 
 //todo: setup bot /multitag, /modifymultitag and /done command. described above.
 

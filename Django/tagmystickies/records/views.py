@@ -132,6 +132,10 @@ class FilterStickersView(APIView):
             else:
                 stickers = StickerTagEntry.objects.filter(
                     user=user).values_list('sticker', flat=True).distinct()
+            # Convert the queryset to a list
+            stickers = list(stickers)
+            # Remove duplicates
+            stickers = list(set(stickers))
 
             # Return the stickers as a list under the 'stickers' key
             return Response({"stickers": list(stickers)}, status=status.HTTP_200_OK)

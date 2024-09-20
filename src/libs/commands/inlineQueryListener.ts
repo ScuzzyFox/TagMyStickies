@@ -8,6 +8,7 @@ import { FilterStickersInput } from "libs/database/databaseModels";
 import { isDev } from "libs/envUtils";
 import TelegramBot, { InlineQueryResult } from "node-telegram-bot-api";
 import { gettagsfromstring } from "./defaultMode";
+import { devLog } from "libs/logging";
 
 /**
  * This is just a utility funciton to feed into the results id of the query answer.
@@ -33,19 +34,29 @@ function generate64ByteString() {
  */
 export function setupInlineQueryListener(bot: TelegramBot) {
   bot.on("inline_query", (query) => {
+    devLog("inline query received");
     let userID = query.from.id; //can get the user ID
     let queryText = query.query; //can get the text the user typed in
     let queryID = query.id; //need the id to be able to respond to the query
     let results: InlineQueryResult[] = []; //the results object that we'll answer the query with
-    let input: FilterStickersInput; //necessary for the filterStickers function because I set it up wierd.
-
+    let input: FilterStickersInput = { tags: [] }; //necessary for the filterStickers function because I set it up wierd.
+    devLog("parsing tags");
+    devLog("Unparsed: ", queryText);
     let tagsFromQuery = gettagsfromstring(queryText); //! stole this from defaultMode.ts
     input.tags = tagsFromQuery.tags;
+    devLog("Tags parsed: ", input.tags);
 
     filterStickers(userID, input)
       .then((stickerList: string[]) => {
+        if (stickerList.length === 0) {
+          // Handle empty list case
+          bot.answerInlineQuery(queryID, []);
+          return;
+        }
         //pick a random sticker to go to the front of the list
-        let poppedStickerIndex: number = Math.random() * stickerList.length;
+        let poppedStickerIndex: number = Math.floor(
+          Math.random() * stickerList.length
+        );
         let poppedSticker = stickerList[poppedStickerIndex];
         let filteredStickerList = stickerList.filter((sticker, index) => {
           return index != poppedStickerIndex;
@@ -61,12 +72,17 @@ export function setupInlineQueryListener(bot: TelegramBot) {
             id: generate64ByteString(),
           });
         }
+        devLog("results: ", results);
 
         // send the results to the user
-        bot.answerInlineQuery(queryID, results);
+        bot.answerInlineQuery(queryID, results, {
+          cache_time: 30,
+          is_personal: true,
+        });
       })
-      .catch(() => {
+      .catch((error) => {
         //todo: catch what went wrong here.
+        devLog("Error filtering stickers in inline query listener.", error);
       });
   });
 }

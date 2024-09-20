@@ -14,6 +14,7 @@ import {
   UserEntry,
   UserState,
 } from "libs/database/databaseModels";
+import { devLog } from "libs/logging";
 import TelegramBot, { Message, Metadata } from "node-telegram-bot-api";
 
 /**
@@ -25,7 +26,12 @@ export function setupDefaultMode(bot: TelegramBot) {
   bot.on("sticker", async (message: Message, metadata: Metadata) => {
     const user = message.from.id;
     const chat = message.chat.id;
-    const userEntry: UserEntry = await retrieveUserEntry(user);
+    let userEntry: UserEntry;
+    try {
+      userEntry = await retrieveUserEntry(user);
+    } catch {
+      return;
+    }
     const userStatus: UserState = JSON.parse(userEntry.status);
 
     //if we're not in default mode, then this listener doesn't apply
@@ -45,7 +51,9 @@ export function setupDefaultMode(bot: TelegramBot) {
     bot.sendMessage(chat, text, {
       reply_markup: {
         //todo: need to standardize callback data shape and update that here.
-        inline_keyboard: [[{ text: "Cancel.", callback_data: "" }]],
+        inline_keyboard: [
+          [{ text: "Cancel.", callback_data: "This is the callback data" }],
+        ],
       },
     });
   });
@@ -54,7 +62,12 @@ export function setupDefaultMode(bot: TelegramBot) {
     const user = message.from.id;
     const chat = message.chat.id;
     const messageContents = message.text;
-    const userEntry: UserEntry = await retrieveUserEntry(user);
+    let userEntry: UserEntry;
+    try {
+      userEntry = await retrieveUserEntry(user);
+    } catch {
+      return;
+    }
     const userStatus: UserState = JSON.parse(userEntry.status);
     let tags: string[] = [];
     let tags_to_toss: string[] = [];
@@ -113,7 +126,9 @@ export function gettagsfromstring(string: string): {
   tags: string[];
   removedtags: string[];
 } {
+  devLog("Entered parsing tags function.");
   var alltags = string.split(/[\s,]+/).filter(Boolean);
+  devLog("Successfully split tags.");
   var filteredtags = alltags.filter((element) => {
     return ![" ", "\n", "\r", ",", '"'].some((char) => element.includes(char));
   });
