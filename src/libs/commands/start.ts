@@ -53,7 +53,10 @@ export function startEventHandlers(bot: TelegramBot): void {
         return;
       } else {
         //todo: do better here.
-        bot.sendMessage(msg.chat.id, "Sorry, something went wrong.");
+        bot.sendMessage(
+          msg.chat.id,
+          "Sorry, something went wrong." + error.toString()
+        );
       }
     }
 
