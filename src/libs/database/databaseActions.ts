@@ -49,6 +49,7 @@ export async function retrieveUserEntry(userID: number): Promise<UserEntry> {
       method: "GET",
       headers: {
         "Content-Type": "application/json", // Specify that we expect JSON
+        Accept: "application/json",
       },
     });
 
