@@ -1,6 +1,9 @@
 import TelegramBot from "node-telegram-bot-api";
+import { isDev } from "./envUtils";
 
-const botName: string = "TagMyStickies"; //up to 64 char
+const botName: string = isDev()
+  ? "EXPERIMENTAL: TagMyStickies"
+  : "TagMyStickies (ALPHA)"; //up to 64 char
 const botDescription = (botUsername: string): string =>
   `I can help you organize and retrieve stickers using text-based tags, making it easy to find the right sticker without having to remember what emoji belong to your favorite stickers.\n\nTo get started, send me a sticker and then send me a bunch of tags! To recall your stickers in any chat, just type "@${botUsername} tag1 tag2 tag3"`; //up to 512 char
 const botShortDesc: string =

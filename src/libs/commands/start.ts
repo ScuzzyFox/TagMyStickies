@@ -1,6 +1,17 @@
 import TelegramBot, { Message } from "node-telegram-bot-api";
 import { startResponses } from "libs/randomResponses";
 import { devLog } from "libs/logging";
+import {
+  DEFAULT_STATE_CODE,
+  UserEntry,
+  UserState,
+} from "libs/database/databaseModels";
+import {
+  CreateUserEntry,
+  patchUserEntry,
+  retrieveUserEntry,
+} from "libs/database/databaseActions";
+import { NotFoundError } from "libs/errors/DatabaseAPIErrors";
 
 var startEventHandlerscv1 = {
   responses: {
@@ -11,21 +22,60 @@ var startEventHandlerscv1 = {
 /**
  * comment
  *
- * @param bot Telegram bot handle
+ * @param bot Telegram bot object handle
  */
 export function startEventHandlers(bot: TelegramBot): void {
-  bot.onText(/\/start/, (msg: Message) => {
-    //TODO: check if the user is already in the database
-    //TODO: if they are, check if the current chatID is different from the one on the database.
-    //TODO: if chatID is different, then update the chatID.
-    //TODO: add user to the database
-    //TODO: save chatID to the database
-    //TODO: set the user interaction state to accepting a sticker
+  bot.onText(/\/start/, async (msg: Message) => {
+    let userEntry: UserEntry = { user: msg.from.id, chat: msg.chat.id };
+    try {
+      // check if user is in the database. Throw error if they aren't
+      userEntry = await retrieveUserEntry(userEntry.user);
+      if (!userEntry) {
+        throw new NotFoundError("User not found");
+      }
+    } catch (error) {
+      // if user isn't in the database, add them.
+      if (error instanceof NotFoundError) {
+        const state: UserState = {
+          stateCode: DEFAULT_STATE_CODE,
+        };
+        userEntry = await CreateUserEntry(
+          userEntry.user,
+          userEntry.chat,
+          JSON.stringify(state)
+        );
 
-    //! I tried to use msg.user.id and got a polling error, suggesting that either the syntax is wrong or my key doesn't allow me to get the user ID.
-    // msg.user.id (get the user ID)
+        //todo: Give the user a spiel about the bot and what the user can do next and that /help is available if they need it.
+        //todo: markdownV2 formatting preferred.
+        bot.sendMessage(
+          userEntry.chat,
+          "Welcome! You've been added to the database." //!this is just a temporary placeholder
+        );
 
-    const chatId = msg.chat.id;
+        return;
+      } else {
+        //todo: do better here.
+        bot.sendMessage(msg.chat.id, "Sorry, something went wrong.");
+      }
+    }
+
+    // if we're here, then this is a returning user.
+    try {
+      if (userEntry.chat != msg.chat.id) {
+        userEntry.chat = msg.chat.id;
+        userEntry = await patchUserEntry(userEntry.user, {
+          chat: userEntry.chat,
+        });
+
+        //todo: maybe a better message here?
+        bot.sendMessage(
+          userEntry.chat,
+          "Hey! I noticed our chat changed. I should still remember your stickers though!"
+        );
+      }
+    } catch (error) {
+      //todo: error handle the patch here
+    }
 
     // gets the id of a random response!
     if (startEventHandlerscv1.responses.avalResp.length < 1) {
@@ -39,17 +89,13 @@ export function startEventHandlers(bot: TelegramBot): void {
     );
     var randomID = startEventHandlerscv1.responses.avalResp[randomaval];
     startEventHandlerscv1.responses.avalResp.splice(randomaval, 1);
-    devLog(randomID, startEventHandlerscv1.responses.avalResp);
+    //devLog(randomID, startEventHandlerscv1.responses.avalResp);
 
     // sends the responses!
     startResponses[randomID].forEach((a, b) => {
       setTimeout(() => {
-        bot.sendMessage(chatId, a.message);
+        bot.sendMessage(userEntry.chat, a.message);
       }, a.time);
     });
   });
-}
-
-function getUserState(userID: number) {
-  //TODO: get user state from database from the user's ID
 }
