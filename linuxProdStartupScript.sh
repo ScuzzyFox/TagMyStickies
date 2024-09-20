@@ -18,7 +18,7 @@ pm2 delete tagmystickiesDJANGO || true
 pm2 start "npm run start" --name tagmystickiesNODE
 
 # Start Django application with pm2, using 'sh -c' to execute multiple commands
-pm2 start ./start_django.sh --name tagmystickiesDJANGO
+pm2 start ./startDjangoProd.sh --name tagmystickiesDJANGO
 
 
 # Save PM2 process list to restart automatically on reboot
