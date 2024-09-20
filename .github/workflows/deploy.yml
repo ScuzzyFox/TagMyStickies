@@ -25,5 +25,6 @@ jobs:
             cd ~/TagMyStickies
             git pull origin main
             chmod +x linuxProdStartupScript.sh
+            chmod +x startDjangoProd.sh
             ./linuxProdStartupScript.sh
           EOF
