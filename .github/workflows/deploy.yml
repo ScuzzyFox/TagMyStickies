@@ -23,6 +23,7 @@ jobs:
         run: |
           ssh -T -o StrictHostKeyChecking=no root@68.183.142.6 << 'EOF'
             cd ~/TagMyStickies
+            git reset --hard HEAD
             git pull origin main
             chmod +x linuxProdStartupScript.sh
             chmod +x startDjangoProd.sh
