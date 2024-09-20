@@ -12,6 +12,7 @@ import {
   retrieveUserEntry,
 } from "libs/database/databaseActions";
 import { NotFoundError } from "libs/errors/DatabaseAPIErrors";
+import { isDev } from "libs/envUtils";
 
 var startEventHandlerscv1 = {
   responses: {
@@ -55,11 +56,7 @@ export function startEventHandlers(bot: TelegramBot): void {
         //todo: do better here.
         bot.sendMessage(
           msg.chat.id,
-          "Sorry, something went wrong." +
-            error.toString() +
-            error.message +
-            "\n\n" +
-            error.lineNumber
+          "Sorry, something went wrong." + error.toString() + error.message
         );
       }
     }
