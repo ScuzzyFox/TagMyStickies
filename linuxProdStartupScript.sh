@@ -18,15 +18,8 @@ pm2 delete tagmystickiesDJANGO || true
 pm2 start "npm run start" --name tagmystickiesNODE
 
 # Start Django application with pm2, using 'sh -c' to execute multiple commands
-pm2 start bash --name tagmystickiesDJANGO -- \
-  "export DJANGO_SETTINGS_MODULE=tagmystickies.settings && \
-  cd Django && \
-  source env/bin/activate && \
-  pip install -r requirements.txt && \
-  cd tagmystickies && \
-  python manage.py makemigrations && \
-  python manage.py migrate && \
-  hypercorn tagmystickies.asgi:application"
+pm2 start bash --name tagmystickiesDJANGO -- sh -c "export DJANGO_SETTINGS_MODULE=tagmystickies.settings && cd Django && source env/bin/activate && pip install -r requirements.txt && cd tagmystickies && python manage.py makemigrations && python manage.py migrate && hypercorn tagmystickies.asgi:application"
+
 
 # Save PM2 process list to restart automatically on reboot
 pm2 save
