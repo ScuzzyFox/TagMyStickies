@@ -7,6 +7,7 @@ import { filterStickers } from "libs/database/databaseActions";
 import { FilterStickersInput } from "libs/database/databaseModels";
 import { isDev } from "libs/envUtils";
 import TelegramBot, { InlineQueryResult } from "node-telegram-bot-api";
+import { gettagsfromstring } from "./defaultMode";
 
 /**
  * This is just a utility funciton to feed into the results id of the query answer.
@@ -21,13 +22,6 @@ function generate64ByteString() {
     result += chars[Math.floor(Math.random() * chars.length)];
   }
   return result;
-}
-
-function parseQueryText(queryText: string): string[] {
-  let tagList: string[] = [];
-  //todo: parse query text. Needs to be able to accept comma delimmited and space delimmited (or the combination).
-  //todo: invalid tags need to be thrown out. No notice to the user.
-  return tagList;
 }
 
 /**
@@ -45,9 +39,8 @@ export function setupInlineQueryListener(bot: TelegramBot) {
     let results: InlineQueryResult[] = []; //the results object that we'll answer the query with
     let input: FilterStickersInput; //necessary for the filterStickers function because I set it up wierd.
 
-    try {
-      input.tags = parseQueryText(queryText);
-    } catch (error) {}
+    let tagsFromQuery = gettagsfromstring(queryText); //! stole this from defaultMode.ts
+    input.tags = tagsFromQuery.tags;
 
     filterStickers(userID, input)
       .then((stickerList: string[]) => {

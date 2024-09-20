@@ -7,7 +7,9 @@ test("test", () => {
 });
 test("moretest", () => {
   expect(
-    gettagsfromstring("Hello, world,whatever, space word and stuff, tag").tags
+    gettagsfromstring(
+      "Hello, world,whatever, space     ,   word and stuff, tag"
+    ).tags
   ).toStrictEqual([
     "Hello",
     "world",

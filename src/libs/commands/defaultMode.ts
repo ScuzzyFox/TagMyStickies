@@ -18,7 +18,7 @@ import TelegramBot, { Message, Metadata } from "node-telegram-bot-api";
 
 /**
  * Default function of the bot, that adds tags to a single sticker without needing a /command.
- * 
+ *
  * @param bot telegram bot handle uwu
  */
 export function setupDefaultMode(bot: TelegramBot) {
@@ -66,12 +66,15 @@ export function setupDefaultMode(bot: TelegramBot) {
     if (!messageContents) {
       return;
     }
-    if ((/\/\w+/).test(messageContents)) {
+    if (/\/\w+/.test(messageContents)) {
       return;
     }
     console.log("wooo");
     let cleaneduptags = gettagsfromstring(messageContents);
-    if ((cleaneduptags.tags.length <= 0) && (cleaneduptags.removedtags.length <= 0)) {
+    if (
+      cleaneduptags.tags.length <= 0 &&
+      cleaneduptags.removedtags.length <= 0
+    ) {
       text = "You evil boyo! Those aren't tags! XD";
       bot.sendMessage(chat, text);
       return;
@@ -83,7 +86,7 @@ export function setupDefaultMode(bot: TelegramBot) {
       text =
         "Some tags were added to your sticker successfully. However, some had invalid characters so they weren't aded:\n\n";
       tags_to_toss.forEach((tag, index) => {
-        text += (((index + 1) < tags_to_toss.length) ? (tag + ", ") : tag);
+        text += index + 1 < tags_to_toss.length ? tag + ", " : tag;
       });
     } else {
       text = "I added your tags to the sticker! Ready for more if you are.";
@@ -106,13 +109,16 @@ export function setupDefaultMode(bot: TelegramBot) {
   });
 }
 
-export function gettagsfromstring(string) {
-  var alltags = string.split(/[\s,]+/).filter(Boolean)
-  var filteredtags = alltags.filter(element => {
-    return !([' ', '\n', '\r', ',', '"']).some(char => element.includes(char));
+export function gettagsfromstring(string: string): {
+  tags: string[];
+  removedtags: string[];
+} {
+  var alltags = string.split(/[\s,]+/).filter(Boolean);
+  var filteredtags = alltags.filter((element) => {
+    return ![" ", "\n", "\r", ",", '"'].some((char) => element.includes(char));
   });
-  var removedtags = alltags.filter(element => {
-    return !filteredtags.some(char => element.includes(char));
+  var removedtags = alltags.filter((element) => {
+    return !filteredtags.some((char) => element.includes(char));
   });
   return { tags: filteredtags, removedtags: removedtags };
 }
