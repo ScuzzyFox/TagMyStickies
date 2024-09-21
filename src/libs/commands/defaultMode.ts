@@ -34,6 +34,94 @@ const cancelButtonCallbackData: ButtonAction = {
 };
 
 /**
+ * Helper function to retrieve a user's entry from the database.
+ *
+ * @param bot Telegram bot instance
+ * @param chat Chat ID for sending error messages
+ * @param user User ID
+ * @returns UserEntry or undefined if an error occurs
+ */
+async function fetchUserEntry(
+  bot: TelegramBot,
+  chat: number,
+  user: number
+): Promise<UserEntry | undefined> {
+  try {
+    return await retrieveUserEntry(user);
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      bot.sendMessage(
+        chat,
+        "Hey sorry, I don't recognize you. Did you delete your data, or perhaps you're new? Try sending /start and then try again!"
+      );
+    } else {
+      bot.sendMessage(
+        chat,
+        "Sorry, there was a fetch error retrieving your database entry. If this persists, please reach out to @scuzzyfox."
+      );
+    }
+    return undefined; // Return undefined to signify an error occurred
+  }
+}
+
+/**
+ * Helper function to patch a user's entry in the database.
+ *
+ * @param bot Telegram bot instance
+ * @param chat Chat ID for sending error messages
+ * @param user User ID
+ * @param updatedStatus New status to patch
+ * @returns true if successful, false otherwise
+ */
+async function updateUserEntry(
+  bot: TelegramBot,
+  chat: number,
+  user: number,
+  updatedStatus: string
+): Promise<boolean> {
+  try {
+    await patchUserEntry(user, { status: updatedStatus });
+    return true;
+  } catch {
+    bot.sendMessage(
+      chat,
+      "Sorry, there was a database error updating your entry. If this persists, please reach out to @scuzzyfox."
+    );
+    return false;
+  }
+}
+
+/**
+ * Handles the cancel action by resetting the user state and sending a cancel message.
+ *
+ * @param bot Telegram bot instance
+ * @param user User ID
+ * @param chat Chat ID
+ * @param message Optional custom message to send after canceling
+ */
+export async function handleCancel(
+  bot: TelegramBot,
+  user: number,
+  chat: number,
+  message: string = "Ok, cancelled tagging that sticker! Though that sticker was pretty cool."
+) {
+  let userEntry: UserEntry | undefined;
+
+  userEntry = await fetchUserEntry(bot, chat, user);
+  if (!userEntry) return;
+
+  let userStatus: UserState = JSON.parse(userEntry.status);
+  userStatus.stateCode = DEFAULT_STATE_CODE;
+  userStatus.singleSticker = null;
+  const updatedStatus = JSON.stringify(userStatus);
+
+  const updateSuccess = await updateUserEntry(bot, chat, user, updatedStatus);
+  if (!updateSuccess) return; // Exit early if there was an error
+
+  bot.sendMessage(chat, message);
+}
+
+/**
  * Default function of the bot, that adds tags to a single sticker without needing a /command.
  *
  * @param bot telegram bot handle uwu
@@ -45,27 +133,14 @@ export function setupDefaultMode(bot: TelegramBot) {
   bot.on("sticker", async (message: Message, metadata: Metadata) => {
     const user = message.from.id;
     const chat = message.chat.id;
-    let userEntry: UserEntry;
 
-    // try to retrieve the user entry from the database. return if we fail.
-    // if we succeed, set userEntry
-    try {
-      userEntry = await retrieveUserEntry(user);
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        bot.sendMessage(
-          chat,
-          "Hey sorry, I don't recognize you. Did you delete your data, or perhaps you're new? Try sending /start and then try again!"
-        );
-      } else {
-        devLog("Error retrieving user entry");
-        bot.sendMessage(
-          chat,
-          "Sorry, there was a fetch error retrieving your database entry. If this persists, please reach out to @scuzzyfox. Just in case also, try sending the /start command, but this is unlikely to work."
-        );
-      }
-      return;
-    }
+    // Use the helper function to retrieve the user entry
+    const userEntry: UserEntry | undefined = await fetchUserEntry(
+      bot,
+      chat,
+      user
+    );
+    if (!userEntry) return; // Exit early if there was an error
 
     const userStatus: UserState = JSON.parse(userEntry.status);
 
@@ -74,27 +149,14 @@ export function setupDefaultMode(bot: TelegramBot) {
       return;
     }
 
-    // the sticker that the user sent us.
-    const sickerReceived: string = message.sticker.file_id;
-
-    // set the singleSticker property of the user status
-    userStatus.singleSticker = sickerReceived;
-
-    // update the state code
+    // Set the sticker received and update the state
+    userStatus.singleSticker = message.sticker.file_id;
     userStatus.stateCode = DEFAULT_STICKER_RECEIVED_READY_FOR_TAGS;
-
-    // serialize the whole status.
     const updatedStatus: string = JSON.stringify(userStatus);
+
     // try to patch the database entry with updated status.
-    try {
-      await patchUserEntry(user, { status: updatedStatus });
-    } catch {
-      bot.sendMessage(
-        chat,
-        "Sorry, there was a database error updating your database entry. If this persists, please reach out to @scuzzyfox."
-      );
-      return;
-    }
+    const updateSuccess = await updateUserEntry(bot, chat, user, updatedStatus);
+    if (!updateSuccess) return; // Exit early if there was an error
 
     const text: string =
       "Thanks for the sticker! Now send me a bunch of tags for it in a single message, separated by spaces or commas.\n\nRemember, tags are one word and can have underscores and dashes. No other special characters are allowed!\n\nSend /cancel if you changed your mind.";
@@ -120,27 +182,12 @@ export function setupDefaultMode(bot: TelegramBot) {
     const user = message.from.id;
     const chat = message.chat.id;
     const messageContents = message.text;
-    let userEntry: UserEntry;
+    let userEntry: UserEntry | undefined;
 
     // try to retrieve the user entry from the database. return if we fail.
     // if we succeed, set userEntry
-    try {
-      userEntry = await retrieveUserEntry(user);
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        bot.sendMessage(
-          chat,
-          "Hey sorry, I don't recognize you. Did you delete your data, or perhaps you're new? Try sending /start and then try again!"
-        );
-      } else {
-        devLog("Error retrieving user entry");
-        bot.sendMessage(
-          chat,
-          "Sorry, there was a fetch error retrieving your database entry. If this persists, please reach out to @scuzzyfox. Just in case also, try sending the /start command, but this is unlikely to work."
-        );
-      }
-      return;
-    }
+    userEntry = await fetchUserEntry(bot, chat, user);
+    if (!userEntry) return;
 
     const userStatus: UserState = JSON.parse(userEntry.status);
     let tags: string[] = [];
@@ -159,15 +206,7 @@ export function setupDefaultMode(bot: TelegramBot) {
 
     // if we get "/cancel" (using regex) then reset the user status to default, remove data from singleSticker, and send the user a message.
     if (/\/cancel/.test(messageContents)) {
-      userStatus.stateCode = DEFAULT_STATE_CODE;
-      userStatus.singleSticker = null;
-      const updatedStatus = JSON.stringify(userStatus);
-      patchUserEntry(user, { status: updatedStatus });
-      //todo random cancel tagging sticker message
-      bot.sendMessage(
-        chat,
-        "Ok, cancelled tagging that sticker! Though that sticker was pretty cool."
-      );
+      await handleCancel(bot, user, chat);
       return;
     }
 
@@ -240,52 +279,13 @@ export function setupDefaultMode(bot: TelegramBot) {
     const user = query.from.id;
     const chat = query.message.chat.id;
     const callbackData = parseButtonAction(query.data);
-    if (!callbackData.mode || !callbackData.action) {
-      return;
-    }
 
     if (
-      callbackData.mode == DEFAULT_STICKER_RECEIVED_READY_FOR_TAGS &&
-      callbackData.action == "cancel"
+      callbackData.mode === DEFAULT_STICKER_RECEIVED_READY_FOR_TAGS &&
+      callbackData.action === "cancel"
     ) {
-      let userEntry: UserEntry;
-      try {
-        userEntry = await retrieveUserEntry(user);
-      } catch (error) {
-        if (error instanceof NotFoundError) {
-          bot.sendMessage(
-            chat,
-            "Hey sorry, I don't recognize you. Did you delete your data, or perhaps you're new? Try sending /start and then try again!"
-          );
-        } else {
-          bot.sendMessage(
-            chat,
-            "Sorry, there was a fetch error retrieving your database entry. If this persists, please reach out to @scuzzyfox. Just in case also, try sending the /start command, but this is unlikely to work."
-          );
-        }
-        return;
-      }
-      let userStatus: UserState = JSON.parse(userEntry.status);
-      userStatus.stateCode = DEFAULT_STATE_CODE;
-      userStatus.singleSticker = null;
-      const updatedStatus = JSON.stringify(userStatus);
-      try {
-        patchUserEntry(user, { status: updatedStatus });
-      } catch {
-        bot.sendMessage(
-          chat,
-          "Sorry, there was a database error updating your database entry. If this persists, please reach out to @scuzzyfox."
-        );
-        return;
-      }
-
-      bot.deleteMessage(chat, query.message.message_id);
-
-      //todo random cancel tagging sticker message
-      bot.sendMessage(
-        chat,
-        "Ok, cancelled tagging that sticker! Though that sticker was pretty cool."
-      );
+      await handleCancel(bot, user, chat);
+      bot.deleteMessage(chat, query.message.message_id); // Remove the inline buttons
     }
   });
 }
