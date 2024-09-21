@@ -1,4 +1,4 @@
-class BotShortDescriptionLengthError extends Error {
+export class BotShortDescriptionLengthError extends Error {
   constructor(msg: string) {
     super(msg);
     this.name = "BotShortDescriptionLengthError";
@@ -9,7 +9,7 @@ class BotShortDescriptionLengthError extends Error {
   }
 }
 
-class BotDescriptionLengthError extends Error {
+export class BotDescriptionLengthError extends Error {
   constructor(msg: string) {
     super(msg);
     this.name = "BotDescriptionLengthError";
@@ -19,7 +19,7 @@ class BotDescriptionLengthError extends Error {
   }
 }
 
-class BotNameLengthError extends Error {
+export class BotNameLengthError extends Error {
   constructor(msg: string) {
     super(msg);
     this.name = "BotNameLengthError";

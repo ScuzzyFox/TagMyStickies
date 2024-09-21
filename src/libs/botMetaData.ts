@@ -1,5 +1,10 @@
 import TelegramBot from "node-telegram-bot-api";
 import { isDev } from "./envUtils";
+import {
+  BotDescriptionLengthError,
+  BotNameLengthError,
+  BotShortDescriptionLengthError,
+} from "./errors/botMetaDataErrors";
 
 const botName: string = isDev()
   ? "EXPERIMENTAL: TagMyStickies"
@@ -24,29 +29,37 @@ export function initializeMetadata(bot: TelegramBot) {
     throw new BotNameLengthError("The bot's name is too long.");
   }
   let username: string = "TagMyStickies";
-  bot.getMe().then(async (user) => {
-    username = user.username ? user.username : username;
-    //@ts-ignore
-    let currentBotName: string = (await bot.getMyName()).name;
-    //@ts-ignore
-    let currentDescription: string = (await bot.getMyDescription()).description;
-    //@ts-ignore
-    let currentShortDescription: string = (await bot.getMyShortDescription())
-      .short_description;
-    if (botDescription(username).length > 512) {
-      throw new BotDescriptionLengthError("The bot's description is too long.");
-    }
-    if (currentDescription != botDescription(username)) {
+  bot
+    .getMe()
+    .then(async (user) => {
+      username = user.username ? user.username : username;
       //@ts-ignore
-      bot.setMyDescription({ description: botDescription(username) }); //for some reason this method wasn't defined in the typescript definitions.
-    }
-    if (currentShortDescription != botShortDesc) {
+      let currentBotName: string = (await bot.getMyName()).name;
       //@ts-ignore
-      bot.setMyShortDescription({ short_description: botShortDesc }); //for some reason this method wasn't defined in the typescript definitions.
-    }
-    if (botName != currentBotName) {
+      let currentDescription: string = (await bot.getMyDescription())
+        .description;
       //@ts-ignore
-      bot.setMyName({ name: botName }); //for some reason this method wasn't defined in the typescript definitions.
-    }
-  });
+      let currentShortDescription: string = (await bot.getMyShortDescription())
+        .short_description;
+      if (botDescription(username).length > 512) {
+        throw new BotDescriptionLengthError(
+          "The bot's description is too long."
+        );
+      }
+      if (currentDescription != botDescription(username)) {
+        //@ts-ignore
+        bot.setMyDescription({ description: botDescription(username) }); //for some reason this method wasn't defined in the typescript definitions.
+      }
+      if (currentShortDescription != botShortDesc) {
+        //@ts-ignore
+        bot.setMyShortDescription({ short_description: botShortDesc }); //for some reason this method wasn't defined in the typescript definitions.
+      }
+      if (botName != currentBotName) {
+        //@ts-ignore
+        bot.setMyName({ name: botName }); //for some reason this method wasn't defined in the typescript definitions.
+      }
+    })
+    .catch((error) => {
+      throw error;
+    });
 }

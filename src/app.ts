@@ -30,7 +30,11 @@ devLog("Bot and token loaded.");
 try {
   initializeMetadata(bot);
 } catch (error) {
-  console.error("Error initializing bot metadata.", error);
+  // exit the app, error to console.
+  // if we couldn't initialize metadata, then something is wrong with the bot.
+  console.log(error);
+  process.exitCode = 1;
+  process.exit(1);
 }
 
 initializeBotCommands(bot);
