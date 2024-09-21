@@ -17,6 +17,7 @@
   "author": "scuzzyfox",
   "license": "MIT",
   "dependencies": {
+    "@vlad-yakovlev/telegram-md": "^2.0.0",
     "dotenv": "^16.4.5",
     "node-telegram-bot-api": "^0.66.0",
     "sqlite3": "^5.1.7"

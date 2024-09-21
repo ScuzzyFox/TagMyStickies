@@ -13,6 +13,19 @@ import {
 } from "libs/database/databaseActions";
 import { NotFoundError } from "libs/errors/DatabaseAPIErrors";
 import { isDev } from "libs/envUtils";
+import { md } from "@vlad-yakovlev/telegram-md";
+import { BOT_USERNAME } from "libs/botMetaData";
+import { sendRandomHint } from "./hints";
+
+const welcomeNewUserMessage: string = md.build(
+  "🎉" +
+    md.bold("Welcome!") +
+    "🎉\n\nI can help you tag yor favorite stickers with text-based tags so you can easily retrieve them in inline mode.\nYour tags are just one-word, case-inssensitive strings that describe your sticker's contents, just the way that " +
+    md.link("boorus", "https://www.yourdictionary.com/booru") +
+    " work.\n\nWanna give it a try? Just send me a sticker you want to tag, and then send me a message with all the tags you want to give it!\n\nRemember that tags are just one word, so they can't contain any spaces. Use underscores and dashes. No other special characters are allowed.\n\nYou can then go to any chat and type " +
+    md.inlineCode(`@${BOT_USERNAME} tag1 tag2 tag3 etc.`) +
+    " to retrieve your stickers, filtered by the tags you gave them!\n\nTake a look at my other commands and checkout /help for more functionality."
+);
 
 var startEventHandlerscv1 = {
   responses: {
@@ -21,7 +34,13 @@ var startEventHandlerscv1 = {
 };
 
 /**
- * comment
+ * Sets up the /start command functionality.
+ *
+ * on `/start`, checks if the user is new or returning. If the user is new,
+ * they are added to the database and given an introductory speil into the app.
+ *
+ * If the user is returning, we check for any changes in the chat id and patch the database entry.
+ *
  *
  * @param bot Telegram bot object handle
  */
@@ -44,12 +63,11 @@ export function startEventHandlers(bot: TelegramBot): void {
           JSON.stringify(state)
         );
 
-        //todo: Give the user a spiel about the bot and what the user can do next and that /help is available if they need it.
-        //todo: markdownV2 formatting preferred.
-        bot.sendMessage(
-          userEntry.chat,
-          "Welcome! You've been added to the database." //!this is just a temporary placeholder
-        );
+        bot.sendMessage(userEntry.chat, welcomeNewUserMessage, {
+          parse_mode: "MarkdownV2",
+        });
+
+        sendRandomHint(bot, userEntry.chat);
 
         return;
       } else {
@@ -78,6 +96,8 @@ export function startEventHandlers(bot: TelegramBot): void {
     } catch (error) {
       //todo: error handle the patch here
     }
+
+    //! here, I think we should send a random message about how the user is already "started" and that /help is available for them if they need.
 
     // gets the id of a random response!
     if (startEventHandlerscv1.responses.avalResp.length < 1) {

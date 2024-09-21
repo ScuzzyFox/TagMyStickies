@@ -6,6 +6,8 @@ import {
   BotShortDescriptionLengthError,
 } from "./errors/botMetaDataErrors";
 
+export let BOT_USERNAME = "TagMyStickies";
+
 const botName: string = isDev()
   ? "EXPERIMENTAL: TagMyStickies"
   : "TagMyStickies (ALPHA)"; //up to 64 char
@@ -33,6 +35,7 @@ export function initializeMetadata(bot: TelegramBot) {
     .getMe()
     .then(async (user) => {
       username = user.username ? user.username : username;
+      BOT_USERNAME = username;
       //@ts-ignore
       let currentBotName: string = (await bot.getMyName()).name;
       //@ts-ignore
