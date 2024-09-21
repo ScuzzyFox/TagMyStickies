@@ -1,5 +1,5 @@
 import { md } from "@vlad-yakovlev/telegram-md";
-import { BOT_USERNAME } from "libs/botMetaData";
+import { BOT_USERNAME } from "libs/botMetaData.js";
 import TelegramBot from "node-telegram-bot-api";
 
 export const HINTS: string[] = [
@@ -14,6 +14,12 @@ export const HINTS: string[] = [
       ` in ${md.bold(
         "any"
       )} chat to retrieve your stickers, filtered by the tags you gave them!`
+  ),
+  md.build(
+    md.bold("Remember!") +
+      " Tags can't have any spaces, So you have to do something like " +
+      md.inlineCode("multiple_words") +
+      " for multiple words."
   ),
 ];
 

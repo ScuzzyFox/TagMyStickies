@@ -6,13 +6,13 @@ import {
   ServerError,
   UnknownError,
   ValidationError,
-} from "libs/errors/DatabaseAPIErrors";
+} from "libs/errors/DatabaseAPIErrors.js";
 import {
   StickerTagEntry,
   UserEntry,
   FilterStickersInput,
   FullUserData,
-} from "./databaseModels";
+} from "./databaseModels.js";
 import {
   listUserEntriesURL,
   deleteMultiTagSetURL,
@@ -25,7 +25,7 @@ import {
   stickerTagEntryDetailURL,
   userEntryDetailURL,
   userStickerTagListURL,
-} from "./urls";
+} from "./urls.js";
 
 interface DatabaseActionResponse<T> {
   success: boolean;

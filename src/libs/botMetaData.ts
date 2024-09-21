@@ -1,10 +1,10 @@
 import TelegramBot from "node-telegram-bot-api";
-import { isDev } from "./envUtils";
+import { isDev } from "./envUtils.js";
 import {
   BotDescriptionLengthError,
   BotNameLengthError,
   BotShortDescriptionLengthError,
-} from "./errors/botMetaDataErrors";
+} from "./errors/botMetaDataErrors.js";
 
 export let BOT_USERNAME = "TagMyStickies";
 

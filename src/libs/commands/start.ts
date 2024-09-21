@@ -1,21 +1,20 @@
 import TelegramBot, { Message } from "node-telegram-bot-api";
-import { startResponses } from "libs/randomResponses";
-import { devLog } from "libs/logging";
+import { startResponses } from "libs/randomResponses.js";
+import { devLog } from "libs/logging.js";
 import {
   DEFAULT_STATE_CODE,
   UserEntry,
   UserState,
-} from "libs/database/databaseModels";
+} from "libs/database/databaseModels.js";
 import {
   CreateUserEntry,
   patchUserEntry,
   retrieveUserEntry,
-} from "libs/database/databaseActions";
-import { NotFoundError } from "libs/errors/DatabaseAPIErrors";
-import { isDev } from "libs/envUtils";
+} from "libs/database/databaseActions.js";
+import { NotFoundError } from "libs/errors/DatabaseAPIErrors.js";
 import { md } from "@vlad-yakovlev/telegram-md";
-import { BOT_USERNAME } from "libs/botMetaData";
-import { sendRandomHint } from "./hints";
+import { BOT_USERNAME } from "libs/botMetaData.js";
+import { sendRandomHint } from "./hints.js";
 
 const welcomeNewUserMessage: string = md.build(
   "🎉" +

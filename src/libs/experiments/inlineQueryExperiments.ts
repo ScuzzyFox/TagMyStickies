@@ -1,5 +1,4 @@
-import { isDev } from "libs/envUtils";
-import { devLog } from "libs/logging";
+import { isDev } from "libs/envUtils.js";
 import TelegramBot, { InlineQueryResult } from "node-telegram-bot-api";
 
 interface JSONPlaceholderPhoto {

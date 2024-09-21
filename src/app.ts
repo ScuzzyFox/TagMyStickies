@@ -6,17 +6,17 @@
  * Place Imports here
  */
 import "dotenv/config";
-import { isDev } from "libs/envUtils";
-import { devLog } from "libs/logging";
+import { isDev } from "libs/envUtils.js";
+import { devLog } from "libs/logging.js";
 devLog("Telegram TagMyStickies bot starting up...");
-import { startEventHandlers } from "libs/commands/start";
+import { startEventHandlers } from "libs/commands/start.js";
 import TelegramBot from "node-telegram-bot-api";
-import { setupInlineExperiment } from "libs/experiments/inlineKeyboardExperiments";
+import { setupInlineExperiment } from "libs/experiments/inlineKeyboardExperiments.js";
 import { setupInlineQueryExperiment } from "libs/experiments/inlineQueryExperiments";
-import { initializeMetadata } from "libs/botMetaData";
-import { initializeBotCommands } from "libs/commands/commandsList";
-import { setupInlineQueryListener } from "libs/commands/inlineQueryListener";
-import { setupDefaultMode } from "libs/commands/defaultMode";
+import { initializeMetadata } from "libs/botMetaData.js";
+import { initializeBotCommands } from "libs/commands/commandsList.js";
+import { setupInlineQueryListener } from "libs/commands/inlineQueryListener.js";
+import { setupDefaultMode } from "libs/commands/defaultMode.js";
 //end import
 
 /**
@@ -77,7 +77,7 @@ devLog("Listeners set up.");
 // * experiments here *
 if (isDev()) {
   devLog("Setting up experiments.");
-  setupInlineExperiment(bot);
+  // setupInlineExperiment(bot);
 
   //! Disable the inline query experiment if you have the production one enabled and vice versa.
   //! because there should probably only ever be one "inline_query" event listener active at a time.

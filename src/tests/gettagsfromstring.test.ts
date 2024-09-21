@@ -1,13 +1,14 @@
-import { gettagsfromstring } from "../libs/commands/defaultMode";
+import { parseTagsFromString } from "libs/utilities/parseTagsUtils";
 
 test("test", () => {
   expect(
-    gettagsfromstring('Hello, World, New\nLine, Space man, Comma,, Quote"').tags
+    parseTagsFromString('Hello, World, New\nLine, Space man, Comma,, Quote"')
+      .tags
   ).toStrictEqual(["Hello", "World", "New", "Line", "Space", "man", "Comma"]);
 });
 test("moretest", () => {
   expect(
-    gettagsfromstring(
+    parseTagsFromString(
       "Hello, world,whatever, space     ,   word and stuff, tag"
     ).tags
   ).toStrictEqual([

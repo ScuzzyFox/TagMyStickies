@@ -1,11 +1,12 @@
 {
+  "type": "module",
   "name": "telegram-stickkeybot",
   "version": "1.0.0",
   "description": "Telegram bot for users to tag their stickers and recall them based on their tags",
   "main": "app.js",
   "scripts": {
     "test": "jest",
-    "build": "tsc && tsc-alias",
+    "build": "tsc && tsc-alias -p tsconfig.json",
     "dev": "npm run build && ts-node -r tsconfig-paths/register src/app.ts",
     "start": "npm run build && node build/app.js"
   },

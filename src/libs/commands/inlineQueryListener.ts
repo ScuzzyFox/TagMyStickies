@@ -3,12 +3,11 @@
  * The first sticker in the list should always be a randomly chosen one.
  */
 
-import { filterStickers } from "libs/database/databaseActions";
-import { FilterStickersInput } from "libs/database/databaseModels";
-import { isDev } from "libs/envUtils";
+import { filterStickers } from "libs/database/databaseActions.js";
+import { FilterStickersInput } from "libs/database/databaseModels.js";
 import TelegramBot, { InlineQueryResult } from "node-telegram-bot-api";
-import { gettagsfromstring } from "./defaultMode";
-import { devLog } from "libs/logging";
+import { devLog } from "libs/logging.js";
+import { parseTagsFromString } from "libs/utilities/parseTagsUtils.js";
 
 /**
  * This is just a utility funciton to feed into the results id of the query answer.
@@ -42,7 +41,7 @@ export function setupInlineQueryListener(bot: TelegramBot) {
     let input: FilterStickersInput = { tags: [] }; //necessary for the filterStickers function because I set it up wierd.
     devLog("parsing tags");
     devLog("Unparsed: ", queryText);
-    let tagsFromQuery = gettagsfromstring(queryText); //! stole this from defaultMode.ts
+    let tagsFromQuery = parseTagsFromString(queryText); //! stole this from defaultMode.ts
     input.tags = tagsFromQuery.tags;
     devLog("Tags parsed: ", input.tags);
 

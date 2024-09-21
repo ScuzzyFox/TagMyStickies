@@ -4,8 +4,8 @@
  */
 
 import TelegramBot, { BotCommand } from "node-telegram-bot-api";
-import { experimentalCommands } from "libs/experiments/experimentalCommands";
-import { isDev } from "libs/envUtils";
+import { experimentalCommands } from "libs/experiments/experimentalCommands.js";
+import { isDev } from "libs/envUtils.js";
 
 //Commands can only be lower-case.
 const prodCommands: BotCommand[] = [

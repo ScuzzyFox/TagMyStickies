@@ -28,5 +28,9 @@
   "javascript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
-  "python.defaultInterpreterPath": "./Django/env/bin/python"
+  "python.defaultInterpreterPath": "./Django/env/bin/python",
+  "javascript.preferences.importModuleSpecifier": "relative",
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "javascript.preferences.importModuleSpecifierEnding": "js",
+  "typescript.preferences.importModuleSpecifierEnding": "js"
 }

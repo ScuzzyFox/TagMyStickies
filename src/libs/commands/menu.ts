@@ -2,8 +2,8 @@
  * Code involved with the /menu command
  */
 
-import { retrieveUserEntry } from "libs/database/databaseActions";
-import { UserEntry, UserState } from "libs/database/databaseModels";
+import { retrieveUserEntry } from "libs/database/databaseActions.js";
+import { UserEntry, UserState } from "libs/database/databaseModels.js";
 import TelegramBot, { InlineKeyboardButton } from "node-telegram-bot-api";
 
 // should have the entry point to the main commands

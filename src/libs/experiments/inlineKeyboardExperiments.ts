@@ -1,4 +1,4 @@
-import { isDev } from "libs/envUtils";
+import { isDev } from "libs/envUtils.js";
 import TelegramBot, { InlineKeyboardButton } from "node-telegram-bot-api";
 
 /**
