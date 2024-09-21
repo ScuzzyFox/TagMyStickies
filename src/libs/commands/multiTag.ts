@@ -127,6 +127,28 @@ export function setupMultiTag(bot: TelegramBot) {
       return;
     }
 
+    if (JSON.parse(userEntry.status).stateCode === TAG_MULTI_AWAITING_TAGS) {
+      //put user back into TAG_MULTI mode. send them a message with inline kb1 updating them.
+      const userState: UserState = JSON.parse(userEntry.status);
+      userState.stateCode = TAG_MULTI;
+      userState.stickers.push(message.sticker.file_id);
+      userState.messages_to_delete.push(message.message_id);
+
+      const msgsnt = await bot.sendMessage(
+        userEntry.user,
+        "Oop, switching you back to sticker-sending mode! You know the deal with next and cancel.",
+        { reply_markup: { inline_keyboard: kb1 } }
+      );
+      userState.messages_to_delete.push(msgsnt.message_id);
+      const isSuccess = await updateUserEntry(
+        bot,
+        userEntry.chat,
+        userEntry.user,
+        JSON.stringify(userState)
+      );
+      return;
+    }
+
     if (JSON.parse(userEntry.status).stateCode != TAG_MULTI) {
       return;
     }
