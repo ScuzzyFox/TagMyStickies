@@ -55,4 +55,5 @@ export interface UserState {
   stickers?: string[];
   tags_to_add?: string[];
   tags_to_remove?: string[];
+  messages_to_delete?: number[];
 }

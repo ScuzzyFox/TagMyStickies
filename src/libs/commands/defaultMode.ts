@@ -111,8 +111,17 @@ export async function handleCancel(
   if (!userEntry) return;
 
   let userStatus: UserState = JSON.parse(userEntry.status);
+  if (
+    userStatus.messages_to_delete &&
+    userStatus.messages_to_delete.length > 0
+  ) {
+    userStatus.messages_to_delete.forEach((messageId) => {
+      bot.deleteMessage(chat, messageId);
+    });
+  }
   userStatus.stateCode = DEFAULT_STATE_CODE;
   userStatus.singleSticker = null;
+  userStatus.messages_to_delete = [];
   const updatedStatus = JSON.stringify(userStatus);
 
   const updateSuccess = await updateUserEntry(bot, chat, user, updatedStatus);
@@ -152,6 +161,10 @@ export function setupDefaultMode(bot: TelegramBot) {
     // Set the sticker received and update the state
     userStatus.singleSticker = message.sticker.file_id;
     userStatus.stateCode = DEFAULT_STICKER_RECEIVED_READY_FOR_TAGS;
+    if (!userStatus.messages_to_delete) {
+      userStatus.messages_to_delete = [];
+    }
+    userStatus.messages_to_delete.push(message.message_id);
     const updatedStatus: string = JSON.stringify(userStatus);
 
     // try to patch the database entry with updated status.
@@ -160,7 +173,7 @@ export function setupDefaultMode(bot: TelegramBot) {
 
     const text: string =
       "Thanks for the sticker! Now send me a bunch of tags for it in a single message, separated by spaces or commas.\n\nRemember, tags are one word and can have underscores and dashes. No other special characters are allowed!\n\nSend /cancel if you changed your mind.";
-    bot.sendMessage(chat, text, {
+    const sentMessage = await bot.sendMessage(chat, text, {
       reply_markup: {
         //todo: need to standardize callback data shape and update that here.
         inline_keyboard: [
@@ -173,6 +186,11 @@ export function setupDefaultMode(bot: TelegramBot) {
         ],
       },
     });
+
+    // add the sent message to messages to delete and update the database
+    userStatus.messages_to_delete.push(sentMessage.message_id);
+    const updatedStatus2: string = JSON.stringify(userStatus);
+    await updateUserEntry(bot, chat, user, updatedStatus2);
   });
 
   /**
@@ -245,11 +263,21 @@ export function setupDefaultMode(bot: TelegramBot) {
     }
 
     addTagsToSticker(user, userStatus.singleSticker, tags)
-      .then(() => {
-        bot.sendMessage(chat, text);
+      .then(async () => {
+        userStatus.messages_to_delete.push(message.message_id);
+        if (
+          userStatus.messages_to_delete &&
+          userStatus.messages_to_delete.length > 0
+        ) {
+          userStatus.messages_to_delete.forEach((messageId) => {
+            bot.deleteMessage(chat, messageId);
+          });
+        }
+        const sentMessage = await bot.sendMessage(chat, text);
         //go back to default state
         userStatus.stateCode = DEFAULT_STATE_CODE;
         userStatus.singleSticker = null;
+        userStatus.messages_to_delete = [sentMessage.message_id];
         const updatedStatus = JSON.stringify(userStatus);
         patchUserEntry(user, { status: updatedStatus });
       })
@@ -285,7 +313,7 @@ export function setupDefaultMode(bot: TelegramBot) {
       callbackData.action === "cancel"
     ) {
       await handleCancel(bot, user, chat);
-      bot.deleteMessage(chat, query.message.message_id); // Remove the inline buttons
+      // bot.deleteMessage(chat, query.message.message_id); // Remove the inline buttons
     }
   });
 }

@@ -55,6 +55,7 @@ export function startEventHandlers(bot: TelegramBot): void {
         devLog("Not found error! going to make a new user.");
         const state: UserState = {
           stateCode: DEFAULT_STATE_CODE,
+          messages_to_delete: [],
         };
         userEntry = await CreateUserEntry(
           userEntry.user,
