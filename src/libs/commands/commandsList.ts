@@ -30,6 +30,10 @@ const prodCommands: BotCommand[] = [
     description: "Show the menu of options!",
   },
   { command: "help", description: "Get help on how to use me!" },
+  {
+    command: "multitag",
+    description: "Tag multiple stickers with the same tags at once!",
+  },
 ];
 
 /**

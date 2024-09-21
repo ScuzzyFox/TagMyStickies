@@ -17,6 +17,7 @@ import { initializeMetadata } from "libs/botMetaData.js";
 import { initializeBotCommands } from "libs/commands/commandsList.js";
 import { setupInlineQueryListener } from "libs/commands/inlineQueryListener.js";
 import { setupDefaultMode } from "libs/commands/defaultMode.js";
+import { setupMultiTag } from "./libs/commands/multiTag.js";
 //end import
 
 /**
@@ -43,9 +44,7 @@ devLog("Setting up listeners.");
 startEventHandlers(bot);
 setupInlineQueryListener(bot);
 setupDefaultMode(bot);
-bot.on("polling_error", (error) => {
-  console.log("Polling error:", error);
-});
+setupMultiTag(bot);
 devLog("Listeners set up.");
 
 //todo: since the bot will need a sticker and then a bunch of tags, the bot needs to know some sort of "status"

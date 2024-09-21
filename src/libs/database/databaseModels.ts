@@ -7,6 +7,7 @@
 export const DEFAULT_STATE_CODE = 0x0000;
 export const DEFAULT_STICKER_RECEIVED_READY_FOR_TAGS = 0x0008;
 export const TAG_MULTI = 0x0006;
+export const TAG_MULTI_AWAITING_TAGS = 0x0009;
 export const DELETE_STICKER = 0x0004;
 export const DELETE_MULTIPLE_STICKERS = 0x0007;
 export const REMOVE_TAG_SET = 0x0001;
