@@ -56,6 +56,10 @@ export function startEventHandlers(bot: TelegramBot): void {
         const state: UserState = {
           stateCode: DEFAULT_STATE_CODE,
           messages_to_delete: [],
+          stickers: [],
+          tags_to_add: [],
+          tags_to_remove: [],
+          singleSticker: null,
         };
         userEntry = await CreateUserEntry(
           userEntry.user,
@@ -80,6 +84,7 @@ export function startEventHandlers(bot: TelegramBot): void {
     }
 
     // if we're here, then this is a returning user.
+
     try {
       if (userEntry.chat != msg.chat.id) {
         userEntry.chat = msg.chat.id;

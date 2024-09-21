@@ -296,7 +296,22 @@ export function setupMultiTag(bot: TelegramBot) {
       }
     } else {
       //probably a set of tags. let's make sure we're in the right mode.
-      if (userState.stateCode != TAG_MULTI_AWAITING_TAGS) return;
+      if (userState.stateCode != TAG_MULTI_AWAITING_TAGS) {
+        const nmsg = await bot.sendMessage(
+          message.chat.id,
+          "Woah, I'm not ready for tags yet (if that's what you're trying to do, I can't tell).\n\nSend /next or hit Next when you're done sending stickers and ready to send some tags.",
+          { reply_markup: { inline_keyboard: kb1 } }
+        );
+        userState.messages_to_delete.push(nmsg.message_id);
+        userState.messages_to_delete.push(message.message_id);
+        const isSuccess = await updateUserEntry(
+          bot,
+          userEntry.chat,
+          userEntry.user,
+          JSON.stringify(userState)
+        );
+        return;
+      }
       let tags = parseTagsFromString(message.text).tags;
       userState.tags_to_add.push(...tags);
       userState.messages_to_delete.push(message.message_id);

@@ -10,7 +10,7 @@ export const HINTS: string[] = [
     ),
   md.bold("Did you know?") +
     md.build("\nyou can use ") +
-    md.inlineCode("@" + BOT_USERNAME + "your tags") +
+    md.inlineCode("@" + BOT_USERNAME + " your tags") +
     md.build(` in `) +
     md.bold("any") +
     md.build(
