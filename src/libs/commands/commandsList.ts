@@ -34,6 +34,11 @@ const prodCommands: BotCommand[] = [
     command: "multitag",
     description: "Tag multiple stickers with the same tags at once!",
   },
+  {
+    command: "massreplace",
+    description:
+      "Remove, and add a bunch of tags from a bunch of stickers all at once!",
+  },
 ];
 
 /**

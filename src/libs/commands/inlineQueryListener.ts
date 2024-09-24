@@ -33,17 +33,14 @@ function generate64ByteString() {
  */
 export function setupInlineQueryListener(bot: TelegramBot) {
   bot.on("inline_query", (query) => {
-    devLog("inline query received");
     let userID = query.from.id; //can get the user ID
     let queryText = query.query; //can get the text the user typed in
     let queryID = query.id; //need the id to be able to respond to the query
     let results: InlineQueryResult[] = []; //the results object that we'll answer the query with
     let input: FilterStickersInput = { tags: [] }; //necessary for the filterStickers function because I set it up wierd.
-    devLog("parsing tags");
-    devLog("Unparsed: ", queryText);
+
     let tagsFromQuery = parseTagsFromString(queryText); //! stole this from defaultMode.ts
     input.tags = tagsFromQuery.tags;
-    devLog("Tags parsed: ", input.tags);
 
     filterStickers(userID, input)
       .then((stickerList: string[]) => {
@@ -71,7 +68,6 @@ export function setupInlineQueryListener(bot: TelegramBot) {
             id: generate64ByteString(),
           });
         }
-        devLog("results: ", results);
 
         // send the results to the user
         bot.answerInlineQuery(queryID, results, {

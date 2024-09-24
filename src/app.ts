@@ -18,6 +18,7 @@ import { initializeBotCommands } from "libs/commands/commandsList.js";
 import { setupInlineQueryListener } from "libs/commands/inlineQueryListener.js";
 import { setupDefaultMode } from "libs/commands/defaultMode.js";
 import { setupMultiTag } from "./libs/commands/multiTag.js";
+import { setupMassReplace } from "./libs/commands/massReplace.js";
 //end import
 
 /**
@@ -45,6 +46,7 @@ startEventHandlers(bot);
 setupInlineQueryListener(bot);
 setupDefaultMode(bot);
 setupMultiTag(bot);
+setupMassReplace(bot);
 devLog("Listeners set up.");
 
 //todo: since the bot will need a sticker and then a bunch of tags, the bot needs to know some sort of "status"

@@ -470,6 +470,28 @@ export async function listStickerTagEntries(params?: {
 }
 
 /**
+ * Returns a list of tags for a given user and sticker.
+ *
+ * @param user integer user ID of the user's stickers you want.
+ * @param sticker string sticker file ID of the sticker you want tags for.
+ * @returns Promise<string[]> Returns an array of tag strings.
+ */
+export async function getAStickersTags(
+  user: number,
+  sticker: string
+): Promise<string[]> {
+  try {
+    const data = await listStickerTagEntries({ user: user, sticker: sticker });
+    const tags = data.map((entry) => entry.tag);
+    return tags;
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      return [];
+    }
+  }
+}
+
+/**
  * Returns a list of stickers for a given user filtered on what they're tagged with.
  *
  * @param user integer user ID of the user's stickers you want.

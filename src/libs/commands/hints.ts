@@ -31,5 +31,5 @@ export function getRandomHint() {
 export function sendRandomHint(bot: TelegramBot, chatid: number) {
   const hint2Send = getRandomHint();
   devLog("Sending random hint: ", hint2Send);
-  bot.sendMessage(chatid, hint2Send, { parse_mode: "MarkdownV2" });
+  return bot.sendMessage(chatid, hint2Send, { parse_mode: "MarkdownV2" });
 }

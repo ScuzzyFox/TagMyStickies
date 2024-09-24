@@ -14,6 +14,8 @@ export const REMOVE_TAG_SET = 0x0001;
 export const REMOVE_MULTI_TAG_SET = 0x0002;
 export const REPLACE_TAGS = 0x0005;
 export const MASS_TAG_REPLACE = 0x0003;
+export const MASS_TAG_REPLACE_AWAITING_REMOVE_TAGS = 0x000a;
+export const MASS_TAG_REPLACE_AWAITING_ADD_TAGS = 0x00b;
 
 export interface StickerTagEntry {
   id?: number;
