@@ -14,7 +14,7 @@ const botName: string = isDev()
 const botDescription = (botUsername: string): string =>
   `I can help you organize and retrieve stickers using text-based tags, making it easy to find the right sticker without having to remember what emoji belong to your favorite stickers.\n\nTo get started, send me a sticker and then send me a bunch of tags! To recall your stickers in any chat, just type "@${botUsername} tag1 tag2 tag3"`; //up to 512 char
 const botShortDesc: string =
-  "I can help you organize and retrieve stickers using text-based tags!"; // up to 120char
+  "I can help you organize and retrieve stickers using text-based tags! Developed by @ScuzzyFox and @CyroPaws"; // up to 120char
 
 /**
  * Sets the bot's name and descriptions. Configure these in `libs/botMetaData`
