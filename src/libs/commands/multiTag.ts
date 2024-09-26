@@ -34,7 +34,10 @@ import {
   updateUserEntry,
 } from "../utilities/transactionalUtilities.js";
 import { parseTagsFromString } from "../utilities/parseTagsUtils.js";
-import { tagMultipleStickers } from "../database/databaseActions.js";
+import {
+  getAStickersTags,
+  tagMultipleStickers,
+} from "../database/databaseActions.js";
 import {
   NotFoundError,
   ServerError,
@@ -155,6 +158,32 @@ export function setupMultiTag(bot: TelegramBot) {
     const userState: UserState = JSON.parse(userEntry.status);
     userState.stickers.push(message.sticker.file_id);
     userState.messages_to_delete.push(message.message_id);
+    const messageDeleteList: number[] = [];
+    try {
+      const stickersTags = await getAStickersTags(
+        userEntry.user,
+        message.sticker.file_id
+      );
+      console.log("stikcers tags", stickersTags);
+      const tagListSent = await bot.sendMessage(
+        userEntry.chat,
+        stickersTags.length > 0
+          ? "This Sticker's Tags:\n\n" + stickersTags.join(", ")
+          : "This sticker currently has no tags."
+      );
+      messageDeleteList.push(tagListSent.message_id);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        const tagListSent = await bot.sendMessage(
+          userEntry.chat,
+          "This Sticker's Tags:\n\nNone/Error retrieving"
+        );
+        messageDeleteList.push(tagListSent.message_id);
+      } else {
+        return;
+      }
+    }
+    userState.messages_to_delete.push(...messageDeleteList);
 
     const isSuccess = await updateUserEntry(
       bot,
