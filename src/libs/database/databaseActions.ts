@@ -12,6 +12,7 @@ import {
   UserEntry,
   FilterStickersInput,
   FullUserData,
+  Stkr,
 } from "./databaseModels.js";
 import {
   listUserEntriesURL,
@@ -56,6 +57,7 @@ export async function retrieveUserEntry(userID: number): Promise<UserEntry> {
     if (response.status === 404) {
       throw new NotFoundError(`User entry with ID ${userID} not found (404).`);
     } else if (response.status === 500) {
+      console.log(await response.text());
       throw new ServerError(`Server error while fetching user entry (500).`);
     } else if (!response.ok) {
       throw new UnknownError(
@@ -478,10 +480,13 @@ export async function listStickerTagEntries(params?: {
  */
 export async function getAStickersTags(
   user: number,
-  sticker: string
+  sticker: Stkr
 ): Promise<string[]> {
   try {
-    const data = await listStickerTagEntries({ user: user, sticker: sticker });
+    const data = await listStickerTagEntries({
+      user: user,
+      sticker: sticker.sticker,
+    });
     const tags = data.map((entry) => entry.tag);
     return tags;
   } catch (error) {
@@ -503,7 +508,7 @@ export async function filterStickers(
   inputData: FilterStickersInput
 ): Promise<string[]> {
   try {
-    const response = await fetch(filterStickersURL(user), {
+    const response = await fetch(filterStickersURL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -652,7 +657,7 @@ export async function deleteMultiTagSet(
  */
 export async function massTagReplace(
   user: number,
-  stickerList: string[],
+  stickerList: Stkr[],
   removeTagList: string[],
   addTagList: string[]
 ): Promise<void> {
@@ -697,17 +702,24 @@ export async function massTagReplace(
  */
 export async function addTagsToSticker(
   user: number,
-  sticker: string,
+  sticker: Stkr,
   tagsToAdd: string[]
 ): Promise<void> {
   try {
-    const response = await fetch(manipulateMultiStickerURL(user, sticker), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ tags_to_add: tagsToAdd }),
-    });
+    const response = await fetch(
+      manipulateMultiStickerURL(user, sticker.sticker),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tags_to_add: tagsToAdd,
+          set_name: sticker.set_name, //todo: CHECK IF THIS IS OKAY
+          file_id: sticker.file_id,
+        }),
+      }
+    );
 
     if (response.status === 400) {
       throw new ValidationError(`Invalid data submitted (400).`);
@@ -808,7 +820,7 @@ export async function replaceTagsOnSticker(
  */
 export async function tagMultipleStickers(
   user: number,
-  stickers: string[],
+  stickers: Stkr[],
   tags: string[]
 ): Promise<void> {
   try {

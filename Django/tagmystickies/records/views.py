@@ -68,6 +68,8 @@ class StickerTagEntryList(generics.ListCreateAPIView):
         tag = self.request.query_params.get('tag', None)
         user = self.request.query_params.get('user', None)
         id = self.request.query_params.get('id', None)
+        file_id = self.request.query_params.get('file_id', None)
+        set_name = self.request.query_params.get('set_name', None)
         queryset = StickerTagEntry.objects.all()
         if id is not None:
             queryset = queryset.filter(id=id)
@@ -75,6 +77,10 @@ class StickerTagEntryList(generics.ListCreateAPIView):
             queryset = queryset.filter(sticker__contains=sticker)
         if tag is not None:
             queryset = queryset.filter(tag__icontains=tag)
+        if file_id is not None:
+            queryset = queryset.filter(file_id__icontains=file_id)
+        if set_name is not None:
+            queryset = queryset.filter(set_name__icontains=set_name)
         if user is not None:
             try:
                 user = int(user)  # Convert user ID to integer
@@ -113,34 +119,80 @@ class FilterStickersView(APIView):
     Note that POST is used instead of GET.
     '''
 
-    def post(self, request, user):
-        usr = get_object_or_404(UserEntry, user=user)
-        ndata = request.data
-        ndata["user"] = usr.user
+    def post(self, request):
+        user_entry = get_object_or_404(
+            UserEntry, user=request.data.get("user", None))
+        data = request.data
 
-        # Validate the input using StickerFilterSerializer
-        serializer = StickerFilterSerializer(data=ndata)
+        try:
+            tags = data.get('tags', [])
+            exclude_tags = data.get('exclude_tags', [])
+            page = data.get('page', 1)
 
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
-            tags = serializer.validated_data.get('tags', [])
+            if tags and len(tags) > 0:
+                tags = [tag.lower().strip() for tag in tags]
+            if exclude_tags and len(exclude_tags) > 0:
+                exclude_tags = [tag.lower().strip() for tag in exclude_tags]
 
-            # If no tags are provided, return all unique stickers for the user
+            stickers = StickerTagEntry.objects.filter(user=user_entry.user)
+
             if tags:
-                stickers = StickerTagEntry.objects.filter(
-                    user=user, tag__in=tags).values_list('sticker', flat=True).distinct()
-            else:
-                stickers = StickerTagEntry.objects.filter(
-                    user=user).values_list('sticker', flat=True).distinct()
-            # Convert the queryset to a list
-            stickers = list(stickers)
-            # Remove duplicates
-            stickers = list(set(stickers))
+                stickers = stickers.filter(tag__in=tags)
+            if exclude_tags:
+                stickers = stickers.exclude(tag__in=exclude_tags)
 
-            # Return the stickers as a list under the 'stickers' key
-            return Response({"stickers": list(stickers)}, status=status.HTTP_200_OK)
+            unique_stickers = list(
+                set(sticker.file_id for sticker in stickers))
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # paginate unique_stickers with a max of 50 entries per page
+            start = (page - 1) * 50
+            end = start + 50
+            unique_stickers = unique_stickers[start:end]
+
+            return Response({"stickers": unique_stickers}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def options(self, request, user=None):
+        """
+        Describe the allowed methods and expected data format for the sticker endpoint.
+        """
+        return Response(
+            {
+                "name": "Sticker Retrieval",
+                "description": "Retrieve stickers based on tags and pagination",
+                "renders": [
+                    "application/json",
+                ],
+                "parses": [
+                    "application/json",
+                ],
+                "allowed_methods": [
+                    "POST",
+                    "OPTIONS",
+                ],
+                "actions": {
+                    "POST": {
+                        "tags": {
+                            "type": "array",
+                            "required": False,
+                            "description": "List of tags to filter stickers"
+                        },
+                        "exclude_tags": {
+                            "type": "array",
+                            "required": False,
+                            "description": "List of tags to exclude from sticker results"
+                        },
+                        "page": {
+                            "type": "integer",
+                            "required": False,
+                            "description": "Page number for pagination (default: 1)"
+                        }
+                    }
+                }
+            },
+            status=status.HTTP_200_OK
+        )
 
 
 class UserStickerTagList(generics.RetrieveAPIView):
@@ -161,12 +213,14 @@ class ManipulateMultiStickerView(APIView):
         Adds a set of tags to 1 user's sticker
         '''
         usr = get_object_or_404(UserEntry, user=user)
+        set_name = request.data.get('set_name', None)
+        file_id = request.data.get('file_id', None)
         tags_to_add = request.data.get('tags_to_add', None)
         if (tags_to_add is not None and len(tags_to_add) > 0):
             for tag in tags_to_add:
                 try:
                     serializer = StickerTagEntrySerializer(
-                        data={"user": user, "sticker": sticker, "tag": tag})
+                        data={"user": user, "sticker": sticker, "tag": tag, "file_id": file_id, "set_name": set_name})
                     if not serializer.is_valid(raise_exception=False):
                         continue
                     serializer.save()
@@ -199,6 +253,8 @@ class ManipulateMultiStickerView(APIView):
         '''
         tags_to_remove = request.data.get('tags_to_remove', None)
         tags_to_add = request.data.get('tags_to_add', None)
+        file_id = request.data.get('file_id', None)
+        set_name = request.data.get('set_name', None)
         if (tags_to_remove is not None):
             validated_tags_to_remove = [tg.lower().strip()
                                         for tg in tags_to_remove]
@@ -208,7 +264,7 @@ class ManipulateMultiStickerView(APIView):
             for tag in tags_to_add:
                 try:
                     serializer = StickerTagEntrySerializer(
-                        data={"user": user, "sticker": sticker, "tag": tag})
+                        data={"user": user, "sticker": sticker, "tag": tag, "file_id": file_id, "set_name": set_name})
                     if not serializer.is_valid():
                         continue
                     serializer.save()
@@ -227,16 +283,17 @@ class MultiStickerView(APIView):
         tag multliple stickers with multiple tags all at once
         '''
         userEntry = get_object_or_404(UserEntry, user=user)
+        # stickers may need to be an object that has sticker, file_id, and set_name
         stickers = request.data.get('stickers', None)
         tags = request.data.get('tags', None)
-        if (stickers is None) and (len(stickers) > 0):
+        if (stickers is None) or (len(stickers) == 0):
             return Response({"error": "Sticker list not supplied or is empty."}, status=status.HTTP_400_BAD_REQUEST)
-        if (tags is None) and (len(tags) > 0):
+        if (tags is None) or (len(tags) == 0):
             return Response({"error": "Tags list not supplied or is empty."}, status=status.HTTP_400_BAD_REQUEST)
         for sticker in stickers:
             for tag in tags:
                 serializer = StickerTagEntrySerializer(
-                    data={"user": userEntry.user, "sticker": sticker, "tag": tag})
+                    data={"user": userEntry.user, "sticker": sticker.get("sticker"), "tag": tag, "file_id": sticker.get("file_id"), "set_name": sticker.get("set_name")})
                 if serializer.is_valid():
                     try:
                         serializer.save()
@@ -250,6 +307,7 @@ class MultiStickerView(APIView):
         '''
         Delete a list of stickers belonging to a user
         '''
+        usr = get_object_or_404(UserEntry, user=user)
         # Ensure the 'stickers' list is provided
         stickers = request.data.get('stickers', None)
         if stickers is None:
@@ -257,7 +315,7 @@ class MultiStickerView(APIView):
 
         # Filter for the user's stickers and then filter by the sticker list
         queryset = StickerTagEntry.objects.filter(
-            user=user, sticker__in=stickers)
+            user=usr.user, sticker__in=stickers)
 
         # Check if the queryset exists and has matching stickers
         if queryset.exists():
@@ -321,15 +379,19 @@ class MassTagReplaceView(APIView):
         usr = get_object_or_404(UserEntry, user=user)
         tags_to_remove = request.data.get('tags_to_remove', None)
         tags_to_add = request.data.get('tags_to_add', None)
+        # sticker may need to be an object that has sticker, file_id, and set_name in it
         stickers = request.data.get('stickers', None)
-        if stickers is None:
+        mapped_stickers = []
+        for sticker in stickers:
+            mapped_stickers.append(sticker.get("sticker"))
+        if stickers is None or len(stickers) == 0:
             return Response({"error": "No or empty stickers list provided."}, status=status.HTTP_400_BAD_REQUEST)
 
         if ((tags_to_remove is not None) and (len(tags_to_remove) > 0)):
             validated_tags_to_remove = [tg.lower().strip()
                                         for tg in tags_to_remove]
             StickerTagEntry.objects.filter(
-                user=user, tag__in=validated_tags_to_remove, sticker__in=stickers).delete()
+                user=user, tag__in=validated_tags_to_remove, sticker__in=mapped_stickers).delete()
         if (tags_to_add is None) or (len(tags_to_add) < 1):
             return Response(status=status.HTTP_200_OK)
 
@@ -337,7 +399,7 @@ class MassTagReplaceView(APIView):
             for tag in tags_to_add:
                 try:
                     serializer = StickerTagEntrySerializer(
-                        data={"user": usr.user, "sticker": sticker, "tag": tag})
+                        data={"user": usr.user, "sticker": sticker.get("sticker"), "tag": tag, "file_id": sticker.get("file_id"), "set_name": sticker.get("set_name")})
                     if not serializer.is_valid():
                         continue
                     serializer.save()

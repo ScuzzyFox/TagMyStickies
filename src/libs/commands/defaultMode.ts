@@ -67,12 +67,25 @@ export function setupDefaultMode(bot: TelegramBot) {
     }
 
     // Set the sticker received and update the state
-    userStatus.singleSticker = message.sticker.file_id;
+    userStatus.singleSticker = {
+      file_id: message.sticker.file_id,
+      sticker: message.sticker.file_unique_id,
+      set_name: message.sticker.set_name,
+    };
+
     userStatus.stateCode = DEFAULT_STICKER_RECEIVED_READY_FOR_TAGS;
     if (!userStatus.messages_to_delete) {
       userStatus.messages_to_delete = [];
     }
     userStatus.messages_to_delete.push(message.message_id);
+    if (!userStatus.singleSticker.set_name) {
+      const text: string =
+        "Sorry, somehow this sticker doesn't belong to a sticker set. Please send a sticker from a set.";
+      const x = await bot.sendMessage(chat, text);
+      userStatus.messages_to_delete.push(x.message_id);
+      return;
+    }
+
     const updatedStatus: string = JSON.stringify(userStatus);
 
     // try to patch the database entry with updated status.
@@ -113,7 +126,9 @@ export function setupDefaultMode(bot: TelegramBot) {
     // try to retrieve the user entry from the database. return if we fail.
     // if we succeed, set userEntry
     userEntry = await fetchUserEntry(bot, chat, user);
-    if (!userEntry) return;
+    if (!userEntry || !userEntry.status) {
+      return;
+    }
 
     const userStatus: UserState = JSON.parse(userEntry.status);
     let tags: string[] = [];
@@ -170,6 +185,7 @@ export function setupDefaultMode(bot: TelegramBot) {
         "I added your tags to the sticker! Ready for another sticker if you are~";
     }
 
+    //todo: EDIT addTagsToSticker
     addTagsToSticker(user, userStatus.singleSticker, tags)
       .then(async () => {
         userStatus.messages_to_delete.push(message.message_id);

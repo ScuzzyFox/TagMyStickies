@@ -48,7 +48,7 @@ class StickerSerializer(serializers.ModelSerializer):
     class Meta:
         model = StickerTagEntry
         # Specifies that the 'sticker' and 'tags' fields will be included in the serialized output.
-        fields = ['sticker', 'tags']
+        fields = ['sticker', 'tags', "set_name", "file_id"]
 
     # Custom method to get all tags associated with the sticker for the specific user.
     # This ensures that only tags belonging to the specific user and sticker combination are retrieved.
@@ -140,6 +140,18 @@ class StickerTagEntrySerializer(serializers.ModelSerializer):
         """
         return value.strip()  # Strip any leading/trailing whitespace from the sticker
 
+    def validate_file_id(self, value):
+        """
+        Custom validation for the 'file_id' field to strip whitespace.
+        """
+        return value.strip()
+
+    def validate_set_name(self, value):
+        """
+        Custom validation for the 'set_name' field to strip whitespace.
+        """
+        return value.strip()
+
     def validate(self, data):
         """
         Cross-field validation for duplicates only if we're saving a new object (not updating an existing one).
@@ -147,6 +159,8 @@ class StickerTagEntrySerializer(serializers.ModelSerializer):
         user = data.get('user')
         sticker = data.get('sticker')
         tag = data.get('tag')
+        # file_id = data.get('file_id')
+        # set_name = data.get('set_name')
 
         # Check for duplicates, but exclude the current instance if updating
         queryset = StickerTagEntry.objects.filter(
@@ -164,7 +178,7 @@ class StickerTagEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StickerTagEntry
-        fields = ['id', 'sticker', 'user', 'tag']
+        fields = ['id', 'sticker', 'user', 'tag', 'file_id', 'set_name']
 
 
 class StickerFilterSerializer(serializers.Serializer):

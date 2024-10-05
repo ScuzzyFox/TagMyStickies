@@ -19,6 +19,7 @@ import { setupInlineQueryListener } from "libs/commands/inlineQueryListener.js";
 import { setupDefaultMode } from "libs/commands/defaultMode.js";
 import { setupMultiTag } from "./libs/commands/multiTag.js";
 import { setupMassReplace } from "./libs/commands/massReplace.js";
+import { setupNotifyUsers } from "./libs/commands/notifyUsers.js";
 //end import
 
 /**
@@ -42,6 +43,7 @@ try {
 initializeBotCommands(bot);
 
 devLog("Setting up listeners.");
+setupNotifyUsers(bot);
 startEventHandlers(bot);
 setupInlineQueryListener(bot);
 setupDefaultMode(bot);
