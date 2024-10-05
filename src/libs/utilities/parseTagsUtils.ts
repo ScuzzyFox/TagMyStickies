@@ -42,20 +42,46 @@ export const INVALID_CHARACTERS: string[] = [
 export function parseTagsFromString(string: string): {
   tags: string[];
   removedtags: string[];
+  page?: number;
+  tags_to_exclude?: string[];
 } {
-  //split all tags by space/comma
-  let alltags = string.split(/[\s,]+/).filter(Boolean);
+  // Split all tags by space/comma and convert to lowercase
+  let alltags = string
+    .toLowerCase() // Convert all input to lowercase
+    .split(/[\s,]+/)
+    .filter(Boolean);
 
-  // filter tags by invalid characters
+  // A page looks like 'p:1' or 'P:1' or 'page:1' or 'Page:1' etc.
+  const pageregex = /p(:|:)(\d+)/i;
+  const page = Number(alltags.find((tag) => pageregex.test(tag)));
+
+  // Tags to exclude start with "-"
+  const tags_to_exclude = alltags
+    .filter((tag) => tag.startsWith("-"))
+    .map((tag) => tag.slice(1)); // Remove leading "-"
+
+  // Filter out invalid characters and tags starting with "-"
   let filteredtags = alltags.filter((element) => {
-    return !INVALID_CHARACTERS.some((char) => element.includes(char));
+    // Check if the element contains any invalid characters
+    const hasInvalidCharacters = INVALID_CHARACTERS.some((char) =>
+      element.includes(char)
+    );
+    return !hasInvalidCharacters && !element.startsWith("-");
   });
 
-  // get a list of tags removed
+  // Get a list of tags removed (invalid characters or excluded by "-")
   let removedtags = alltags.filter((element) => {
-    return !filteredtags.some((char) => element.includes(char));
+    const hasInvalidCharacters = INVALID_CHARACTERS.some((char) =>
+      element.includes(char)
+    );
+    return hasInvalidCharacters || element.startsWith("-");
   });
 
-  // return the resulting arrays
-  return { tags: filteredtags, removedtags: removedtags };
+  // Return the resulting arrays
+  return {
+    tags: filteredtags,
+    removedtags: removedtags,
+    page: page,
+    tags_to_exclude: tags_to_exclude,
+  };
 }

@@ -8,6 +8,7 @@ import {
   MASS_TAG_REPLACE,
   MASS_TAG_REPLACE_AWAITING_ADD_TAGS,
   MASS_TAG_REPLACE_AWAITING_REMOVE_TAGS,
+  Stkr,
   UserEntry,
   UserState,
 } from "../database/databaseModels.js";
@@ -132,7 +133,7 @@ async function handleEntry(
 async function handleStickerReceived(
   bot: TelegramBot,
   userEntry: UserEntry,
-  sticker: string,
+  sticker: Stkr,
   messagesToDelete: number[]
 ) {
   const userState: UserState = JSON.parse(userEntry.status);
@@ -336,10 +337,11 @@ export function setupMassReplace(bot: TelegramBot) {
       return;
     }
     try {
-      const stickersTags = await getAStickersTags(
-        userEntry.user,
-        message.sticker.file_id
-      );
+      const stickersTags = await getAStickersTags(userEntry.user, {
+        file_id: message.sticker.file_id,
+        sticker: message.sticker.file_unique_id,
+        set_name: message.sticker.set_name,
+      });
       const tagListSent = await bot.sendMessage(
         userEntry.chat,
         stickersTags.length > 0
@@ -372,7 +374,11 @@ export function setupMassReplace(bot: TelegramBot) {
     handleStickerReceived(
       bot,
       userEntry,
-      message.sticker.file_id,
+      {
+        file_id: message.sticker.file_id,
+        sticker: message.sticker.file_unique_id,
+        set_name: message.sticker.set_name,
+      },
       messageDeleteList
     );
   });
@@ -386,6 +392,9 @@ export function setupMassReplace(bot: TelegramBot) {
       message.chat.id,
       message.from.id
     );
+    if (!userEntry || !userEntry.status) {
+      return;
+    }
     const userState: UserState = JSON.parse(userEntry.status);
 
     if (

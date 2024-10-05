@@ -31,10 +31,14 @@ class StickerTagEntry(models.Model):
     '''
     Sticker Tag Entry model represents 1 tag per user per sticker. tags are lower case and can't have certain special characters.
     '''
-    sticker = models.CharField(max_length=128)
+    sticker = models.CharField(
+        max_length=128)  # the file_unique_id of the sticker
     user = models.ForeignKey(
         UserEntry, on_delete=models.CASCADE, related_name='stickers')
     tag = models.CharField(max_length=128)
+    # the set that the sticker belongs to (necessary for )
+    set_name = models.CharField(max_length=128)
+    file_id = models.CharField(max_length=128)  # the file_id of the sticker
     special_chars = [' ', '\n', '\r', ',', '"']
 
     class Meta:
@@ -49,6 +53,10 @@ class StickerTagEntry(models.Model):
             self.sticker = self.sticker.strip()
         if self.tag:
             self.tag = self.tag.lower().strip()
+        if self.set_name:
+            self.set_name = self.set_name.strip()
+        if self.file_id:
+            self.file_id = self.file_id.strip()
 
             # Check for special characters in the tag
             for char in special_chars:

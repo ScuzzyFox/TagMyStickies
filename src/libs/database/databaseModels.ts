@@ -34,6 +34,9 @@ export interface UserEntry {
 
 export interface FilterStickersInput {
   tags?: string[];
+  exclude_tags?: string[];
+  page?: number;
+  user: number;
 }
 
 export interface StickerWithTags {
@@ -52,10 +55,16 @@ export interface TagsToRemove {
   tags_to_remove: string[];
 }
 
+export interface Stkr {
+  sticker: string; // unique id, what a sticker should be looked up by
+  file_id: string; // reusable file_id, not unique
+  set_name: string; // the set that the sticker belongs to
+}
+
 export interface UserState {
   stateCode: number;
-  singleSticker?: string;
-  stickers?: string[];
+  singleSticker?: Stkr;
+  stickers?: Stkr[];
   tags_to_add?: string[];
   tags_to_remove?: string[];
   messages_to_delete?: number[];

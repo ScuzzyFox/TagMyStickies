@@ -35,8 +35,7 @@ export const stickerTagEntryDetailURL = (id: number): string =>
  * For filtering a user's stickers by tags (POST).
  * Provide a JSON body with user ID and optional tags: {"user": 123, "tags": ["funny", "serious"]}
  */
-export const filterStickersURL = (user: number): string =>
-  `${APIURL}/records/filter-stickers/${user}/`;
+export const filterStickersURL = `${APIURL}/records/filter-stickers/`;
 
 /**
  * For viewing a user's complete list of stickers and tags (GET).

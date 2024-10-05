@@ -59,21 +59,21 @@ class StickerTagEntryModelTest(TestCase):
 
         # Create a sticker tag entry with uppercase letters in the tag
         sticker_entry = StickerTagEntry.objects.create(
-            user=user, sticker="sticker1", tag="FUNNY")
+            user=user, sticker="sticker1", tag="FUNNY", file_id=" sticker1_fileID ", set_name=" sticker1 Set Name  ")
 
         # Check if the tag is saved in lowercase
         self.assertEqual(sticker_entry.tag, "funny")
+        self.assertEqual(sticker_entry.file_id, "sticker1_fileID")
+        self.assertEqual(sticker_entry.set_name, "sticker1 Set Name")
 
     def test_stickertagentry_no_duplicate_tags(self):
         user = UserEntry.objects.create(user=99, chat=74683, status="blah")
 
         StickerTagEntry.objects.create(
-            user=user, sticker="my_sticker", tag="cool")
-        try:
+            user=user, sticker="my_sticker", tag="cool", set_name="coolpack", file_id="apdf")
+        with self.assertRaises(ValidationError):
             StickerTagEntry.objects.create(
-                user=user, sticker="my_sticker", tag="cool")
-        except ValidationError:
-            pass
+                user=user, sticker="my_sticker", tag="cool", set_name="coolpack", file_id="apdf")
 
         result_list = StickerTagEntry.objects.filter(
             user=user, sticker="my_sticker", tag="cool")
@@ -85,7 +85,7 @@ class StickerTagEntryModelTest(TestCase):
             user=999, chat=3983864538, status="dude")
         with self.assertRaises(ValidationError):
             StickerTagEntry.objects.create(
-                user=user, sticker="8237548632584", tag="yo, this tag rocks.\n")
+                user=user, sticker="8237548632584", tag="yo, this tag rocks.\n", file_id="apofh", set_name="aduiagodf")
 
 
 class UserEntrySerializerTest(APITestCase):
@@ -126,7 +126,7 @@ class StickerTagEntrySerializerTest(APITestCase):
 
         # Create a sticker tag entry
         sticker_entry = StickerTagEntry.objects.create(
-            user=user, sticker="sticker1", tag=" fUnNy ")
+            user=user, sticker="sticker1", tag=" fUnNy ", set_name="set_name", file_id="file_id")
 
         # Serialize the sticker tag entry
         serializer = StickerTagEntrySerializer(sticker_entry)
@@ -137,12 +137,16 @@ class StickerTagEntrySerializerTest(APITestCase):
             'sticker': 'sticker1',
             'user': user.user,  # Using the user's primary key
             'tag': 'funny',
+            'set_name': 'set_name',
+            'file_id': 'file_id',
         }
 
         duplicate_data = {
             'sticker': 'sticker1',
             'user': user.user,  # Using the user's primary key
             'tag': 'funny',
+            'set_name': 'set_name',
+            'file_id': 'file_id',
         }
 
         # Data for creating a new entry
@@ -150,6 +154,8 @@ class StickerTagEntrySerializerTest(APITestCase):
             'sticker': 'sticker1',
             'user': user.user,  # Using the user's primary key
             'tag': 'sad',
+            'set_name': 'my_set_name',
+            'file_id': 'my_file_id',
         }
 
         # Bad data with special characters in the tag
@@ -157,6 +163,8 @@ class StickerTagEntrySerializerTest(APITestCase):
             'sticker': 'sticker1',
             'user': user.user,  # Using the user's primary key
             'tag': 'messed, up\n',
+            'set_name': 'my_other_set_name',
+            'file_id': 'my_other_file_id',
         }
 
         # Validate the serializer for raw data and bad data
@@ -225,7 +233,9 @@ class StickerTagEntryListTest(APITestCase):
         data = {
             "user": user.user,
             "sticker": "  sticker2  ",  # Test with leading and trailing whitespace
-            "tag": "  Serious  "        # Test with leading and trailing whitespace
+            "tag": "  Serious  ",       # Test with leading and trailing whitespace
+            "set_name": " set_name ",
+            "file_id": " file_id "
         }
         response = self.client.post('/records/ste/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -235,19 +245,28 @@ class StickerTagEntryListTest(APITestCase):
             sticker="sticker2").tag, "serious")
         self.assertEqual(StickerTagEntry.objects.get(
             sticker="sticker2").sticker, "sticker2")
+        self.assertEqual(StickerTagEntry.objects.get(
+            sticker="sticker2").set_name, "set_name")
+        self.assertEqual(StickerTagEntry.objects.get(
+            sticker="sticker2").file_id, "file_id")
 
     def test_create_bad_stickertagentries(self):
         user = UserEntry.objects.get(user=1)
         bad_data = {
             "user": user.user,
             "sticker": "asdfobuiadsio",
-            "tag": "cool tag\n"
+            "tag": "cool tag\n",
+            "set_name": " set_name ",
+            "file_id": " file_id "
         }
         good_data = {
             "user": user.user,
             "sticker": "asdfobuiadsio",
-            "tag": "righteous"
+            "tag": "righteous",
+            "set_name": " set_name ",
+            "file_id": " file_id "
         }
+
         # post some bad data (special character and space in tag)
         bad_data_response = self.client.post(
             '/records/ste/', bad_data, format='json')
@@ -269,55 +288,61 @@ class FilterStickersViewTest(APITestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.user = UserEntry.objects.create(
+        self.userEntry = UserEntry.objects.create(
             user=1, chat=12345, status="active")
 
         # Create several stickers with various tags
-        StickerTagEntry.objects.create(
-            user=self.user, sticker="sticker1", tag="funny")
-        StickerTagEntry.objects.create(
-            user=self.user, sticker="sticker2", tag="serious")
-        StickerTagEntry.objects.create(
-            user=self.user, sticker="sticker3", tag="funny")
-        StickerTagEntry.objects.create(
-            user=self.user, sticker="sticker4", tag="funny")
-        StickerTagEntry.objects.create(
-            user=self.user, sticker="sticker5", tag="serious")
+        self.sticker1 = StickerTagEntry.objects.create(
+            user=self.userEntry, sticker="sticker1", tag="funny", file_id="file_id_1", set_name="set_name")
+        self.sticker2 = StickerTagEntry.objects.create(
+            user=self.userEntry, sticker="sticker2", tag="serious", file_id="file_id_2", set_name="set_name")
+        self.sticker3 = StickerTagEntry.objects.create(
+            user=self.userEntry, sticker="sticker3", tag="funny", file_id="file_id_3", set_name="set_name")
+        self.sticker4 = StickerTagEntry.objects.create(
+            user=self.userEntry, sticker="sticker4", tag="funny", file_id="file_id_4", set_name="set_name")
+        self.sticker5 = StickerTagEntry.objects.create(
+            user=self.userEntry, sticker="sticker5", tag="serious", file_id="file_id_5", set_name="set_name")
 
     def test_filter_stickers_single_tag(self):
         response = self.client.post(
-            '/records/filter-stickers/', {'user': 1, 'tags': [' FUNNY ']})
+            '/records/filter-stickers/', {'user': 1, 'tags': [' FUNNY ']}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Expect three stickers to be returned
-        self.assertEqual(len(response.data['stickers']), 3)
-        self.assertEqual(set(response.data['stickers']), {
-                         'sticker1', 'sticker3', 'sticker4'})
+        self.assertEqual(
+            len(response.data['stickers']), 3, msg=response.data['stickers'])
+        self.assertEqual(set(response.data['stickers']),
+                         {"file_id_1",
+                          "file_id_3",
+                          "file_id_4"
+                          })
 
     def test_filter_stickers_multiple_tags(self):
         response = self.client.post(
-            '/records/filter-stickers/', {'user': 1, 'tags': ['FUNNY ', ' serious']})
+            '/records/filter-stickers/', {'user': 1, 'tags': ['FUNNY ', ' serious']}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Expect all five stickers to be returned
         self.assertEqual(len(response.data['stickers']), 5)
         self.assertEqual(set(response.data['stickers']), {
-                         'sticker1', 'sticker2', 'sticker3', 'sticker4', 'sticker5'})
+                         'file_id_1', 'file_id_2', 'file_id_3', 'file_id_4', 'file_id_5'})
 
     def test_filter_stickers_empty_tag_list(self):
         response = self.client.post(
-            '/records/filter-stickers/', {'user': 1, 'tags': []})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+            '/records/filter-stickers/', {'user': 1, 'tags': []}, format='json')
+        self.assertEqual(response.status_code,
+                         status.HTTP_200_OK, msg=response.content)
         # Expect all five stickers to be returned
         self.assertEqual(len(response.data['stickers']), 5)
         self.assertEqual(set(response.data['stickers']), {
-                         'sticker1', 'sticker2', 'sticker3', 'sticker4', 'sticker5'})
+                         'file_id_1', 'file_id_2', 'file_id_3', 'file_id_4', 'file_id_5'})
 
     def test_filter_stickers_no_tag_list(self):
-        response = self.client.post('/records/filter-stickers/', {'user': 1})
+        response = self.client.post(
+            '/records/filter-stickers/', {'user': 1}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Expect all five stickers to be returned
         self.assertEqual(len(response.data['stickers']), 5)
         self.assertEqual(set(response.data['stickers']), {
-                         'sticker1', 'sticker2', 'sticker3', 'sticker4', 'sticker5'})
+            'file_id_1', 'file_id_2', 'file_id_3', 'file_id_4', 'file_id_5'})
 
     def test_filter_stickers_no_results(self):
         response = self.client.post(
@@ -325,15 +350,6 @@ class FilterStickersViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Expect no stickers to be returned
         self.assertEqual(len(response.data['stickers']), 0)
-
-    def test_multiple_stickers_returned_for_shared_tag(self):
-        response = self.client.post(
-            '/records/filter-stickers/', {'user': 1, 'tags': ['funny']})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Expect three stickers to be returned for the 'funny' tag
-        self.assertEqual(len(response.data['stickers']), 3)
-        self.assertEqual(set(response.data['stickers']), {
-                         'sticker1', 'sticker3', 'sticker4'})
 
 
 class UserEntryDetailTest(APITestCase):
@@ -433,11 +449,11 @@ class DeleteStickerTest(APITestCase):
         self.client = APIClient()
         self.userEntry = UserEntry.objects.create(user=69000, chat=69000)
         self.stickerEntry11 = StickerTagEntry.objects.create(
-            user=self.userEntry, sticker="sticker1", tag="hug")
+            user=self.userEntry, sticker="sticker1", tag="hug", file_id="file_id_1", set_name="set_name")
         self.stickerEntry12 = StickerTagEntry.objects.create(
-            user=self.userEntry, sticker="sticker1", tag="happy")
+            user=self.userEntry, sticker="sticker1", tag="happy", file_id="file_id_1", set_name="set_name")
         self.stickerEntry21 = StickerTagEntry.objects.create(
-            user=self.userEntry, sticker="sticker2", tag="hug")
+            user=self.userEntry, sticker="sticker2", tag="hug", file_id="file_id_2", set_name="set_name")
 
     def test_delete_stickers(self):
         response = self.client.delete(
@@ -447,7 +463,8 @@ class DeleteStickerTest(APITestCase):
             sticker="sticker1", user=self.userEntry.user).exists())
 
     def test_post_sticker_tags(self):
-        data = {"tags_to_add": ["NuTTy", "Cool", "coOl", "Bad, Tag\n", ""]}
+        data = {"tags_to_add": ["NuTTy", "Cool", "coOl", "Bad, Tag\n",
+                                ""], "file_id": "file_id_2", "set_name": "set_name"}
         response = self.client.post(
             f'/records/stickers/{self.userEntry.user}/sticker2/', data=json.dumps(data), content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -462,7 +479,9 @@ class DeleteStickerTest(APITestCase):
     def test_patch_sticker_tags(self):
         data = {
             "tags_to_add": ["rAdIcal", "bad, tag\r", ""],
-            "tags_to_remove": [" HUG ", "bad, tag", "", "nonexistent"]
+            "tags_to_remove": [" HUG ", "bad, tag", "", "nonexistent"],
+            "file_id": "file_id_2",
+            "set_name": "set_name"
         }
         response = self.client.patch(
             f'/records/stickers/{self.userEntry.user}/sticker2/', data=json.dumps(data), content_type="application/json")
@@ -503,8 +522,19 @@ class MultiStickerTest(APITestCase):
 
     def test_multi_post_sticker(self):
         # Prepare the data for the POST request
+        sticker3 = {
+            "sticker": "sticker3",
+            "file_id": "file_id_3",
+            "set_name": "set_name_3"
+        }
+
+        sticker4 = {
+            "sticker": "sticker4",
+            "file_id": "file_id_4",
+            "set_name": "set_name_4"
+        }
         post_data = {
-            "stickers": ["sticker3", "sticker4"],
+            "stickers": [sticker3, sticker4],
             "tags": ["coOl", " awEsome "]
         }
 
@@ -598,11 +628,21 @@ class MassTagReplaceViewTest(APITestCase):
             sticker="sticker2", user=self.userEntry, tag="tag2")
 
     def test_swap(self):
+        sticker1 = {
+            "sticker": "sticker1",
+            "file_id": "file_id_1",
+            "set_name": "set_name_1"
+        }
+        sticker2 = {
+            "sticker": "sticker2",
+            "file_id": "file_id_2",
+            "set_name": "set_name_2"
+        }
         data = {"tags_to_remove": [" tAg1 ", " tag2 ", "Tag3", "\n"], "tags_to_add": [
-            " TAG3 ", "tag4", "bad, tag\n"], "stickers": ["sticker1", "sticker2"]}
+            " TAG3 ", "tag4", "bad, tag\n"], "stickers": [sticker1, sticker2]}
         response = self.client.patch(
             f'/records/stickers/tags/mass-replace/{self.userEntry.user}/', data=json.dumps(data), content_type="application/json")
-        self.assertTrue(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(StickerTagEntry.objects.filter(
             user=self.userEntry, sticker="sticker1", tag="tag1").exists())
         self.assertFalse(StickerTagEntry.objects.filter(
